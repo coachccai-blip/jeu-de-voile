@@ -10,7 +10,7 @@
 
 // Couleurs pastel, lisibles sur l'océan sombre. Le joueur est en bleu pastel.
 export const TEAMS = [
-  { id: 'joueur', name: 'Joueur', color: '#8FB6F2', sail: '#ffffff' }, // bleu pastel (joueur)
+  { id: 'joueur', name: 'Vous',   color: '#8FB6F2', sail: '#ffffff' }, // bleu pastel (joueur)
   { id: 'david',  name: 'David',  color: '#9FE3B4', sail: '#ffffff' }, // vert menthe pastel
   { id: 'pierre', name: 'Pierre', color: '#F6B482', sail: '#ffffff' }, // pêche pastel
   { id: 'agnes',  name: 'Agnès',  color: '#F2A9C4', sail: '#ffffff' }, // rose pastel
