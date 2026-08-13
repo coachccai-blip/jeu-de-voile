@@ -462,8 +462,8 @@ input[type=range]::-moz-range-thumb {
 .trophies-inline .trophy { font-size: 1.25rem; }
 
 /* --- Bas : difficulté + actions --- */
-.podium-bottom { display: flex; flex-direction: column; gap: 8px; margin-top: 2px; }
-.podium-replay-diff { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; max-width: 440px; margin: 0 auto; }
+.podium-bottom { display: flex; flex-direction: column; gap: clamp(14px, 2.4vh, 26px); margin-top: clamp(6px, 1.2vh, 14px); }
+.podium-replay-diff { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; max-width: 440px; margin: 0 auto; }
 .podium-replay-diff label { font-size: 0.85rem; color: var(--text-dim); }
 .podium-replay-diff .pr-diff-label { color: var(--accent); }
 .podium-replay-diff input[type=range] { max-width: 320px; }
