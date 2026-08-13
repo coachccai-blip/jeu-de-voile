@@ -347,69 +347,90 @@ function drawCoursePreview(canvas, course) {
   canvas._stop = () => window.removeEventListener('resize', resize);
 }
 
-// ─────────────────────────── PODIUM ───────────────────────────
+// ─────────────────────────── PODIUM / RÉSULTATS ───────────────────────────
 export function renderPodium(ctx, { results, won, courseId, slider, diffIndex, recordInfo, stats }) {
   clear(ctx.root);
   audio.playMusic('menu');
   const idx = courseIndex(courseId);
+  const course = COURSES[idx];
   const nextCourse = COURSES[idx + 1];
   const nextUnlocked = nextCourse && isUnlocked(idx + 1);
-  const el = document.createElement('div');
-  el.className = 'screen podium-screen';
   const acc = stats.questions ? Math.round(stats.correct / stats.questions * 100) : 0;
   const bestReply = stats.bestReplyMs === Infinity ? '—' : (stats.bestReplyMs / 1000).toFixed(2) + ' s';
+  const player = results.find(r => r.isPlayer) || results[0];
+  const playerPos = results.indexOf(player) + 1;
+  const total = results.length;
+  const trophyCount = (recordInfo.trophies || []).filter(Boolean).length;
+  const medalFor = (p) => (p === 1 ? '🥇' : p === 2 ? '🥈' : p === 3 ? '🥉' : `${p}ᵉ`);
+
+  const el = document.createElement('div');
+  el.className = `screen podium-screen ${won ? 'is-victory' : 'is-defeat'}`;
   el.innerHTML = `
-    <div class="podium-hero ${won ? 'victory' : ''}">
-      <h1>${won ? '🏆 ' + t('podiumVictory') : t('podiumDefeat')}</h1>
-      <div class="hero-badges">
-        ${recordInfo && recordInfo.newTrophy ? `<div class="record-badge trophy-badge">🏆 ${t('podiumNewTrophy')} · ${BALANCE.difficulty.levels[diffIndex].label}</div>` : ''}
-        ${recordInfo && recordInfo.isRecord ? `<div class="record-badge">⭐ ${t('podiumNewRecord')}</div>` : ''}
-      </div>
-      <div class="podium-trophies">
-        <span class="pt-label">${t('podiumTrophies')} : <strong>${(recordInfo.trophies || []).filter(Boolean).length}</strong>/5</span>
-        ${trophiesHTML(recordInfo.trophies, { earnedNow: recordInfo.newTrophy ? diffIndex : -1 })}
-      </div>
-    </div>
-    <div class="podium-cols">
-      <div class="podium-stand">
-        ${[1, 0, 2].map(pos => {
-          const r = results[pos]; if (!r) return '<div class="stand empty"></div>';
-          const place = pos + 1;
-          return `<div class="stand place-${place} ${r.isPlayer ? 'me' : ''}">
-            <div class="stand-boat" style="background:${r.color}"></div>
-            <div class="stand-name">${r.name}</div>
-            <div class="stand-block"><span class="medal">${place === 1 ? '🥇' : place === 2 ? '🥈' : '🥉'}</span>${place}</div>
-          </div>`;
-        }).join('')}
-      </div>
-      <div class="podium-side">
-        <h3>${t('podiumRank')}</h3>
-        <ol class="rank-list">
-          ${results.map((r, i) => `<li class="${r.isPlayer ? 'me' : ''}"><span class="pos">${i + 1}</span><i style="background:${r.color}"></i><span class="nm">${r.name}</span><span class="tm">${fmtTime(r.time * 1000)}</span></li>`).join('')}
-        </ol>
-        <h3>${t('podiumStats')}</h3>
-        <div class="stats-grid">
-          <div><span>${t('podiumQuestions')}</span><strong>${stats.questions}</strong></div>
-          <div><span>${t('podiumAccuracy')}</span><strong>${acc}%</strong></div>
-          <div><span>${t('podiumBestReply')}</span><strong>${bestReply}</strong></div>
-          <div><span>${t('podiumTopSpeed')}</span><strong>${Math.round(stats.topSpeedKnots)} nds</strong></div>
-        </div>
-        <h3>${t('podiumBestTimes')}</h3>
-        <ol class="best-times">${(recordInfo.bestTimes || []).map(bt => `<li>${fmtTime(bt)}</li>`).join('') || '<li>—</li>'}</ol>
-      </div>
-    </div>
-    <div class="podium-bottom">
-      <div class="podium-replay-diff">
-        <label>${t('preRaceDifficulty')} (Rejouer) : <strong class="pr-diff-label"></strong></label>
-        <input type="range" class="pr-diff-slider" min="0" max="1" step="${1 / (BALANCE.difficulty.levels.length - 1)}" value="${slider}">
-      </div>
-      <div class="podium-actions">
-        <button class="btn" data-act="replay">↻ ${t('podiumReplay')}</button>
-        ${nextCourse && nextUnlocked ? `<button class="btn btn-primary" data-act="next">${t('podiumNext')} →</button>` : ''}
-        <button class="btn btn-ghost" data-act="map">${t('podiumMap')}</button>
-      </div>
-    </div>
     ${won ? '<canvas class="confetti"></canvas>' : ''}
+    <div class="results">
+      <div class="results-head">🏁 ${course.name} · ${course.country}</div>
+      <h1 class="results-title">${won ? t('podiumVictory') : t('podiumDefeat')}</h1>
+
+      <div class="time-hero">
+        <div class="th-rank">
+          <span class="th-medal">${medalFor(playerPos)}</span>
+          <span class="th-team" style="--c:${player.color}">${player.name}</span>
+        </div>
+        <div class="th-time">
+          <div class="th-time-label">${t('podiumYourTime')}</div>
+          <div class="th-time-value">${fmtTime(player.time * 1000)}</div>
+        </div>
+        <div class="th-badges">
+          ${recordInfo.isRecord ? `<span class="badge badge-record">⭐ ${t('podiumNewRecord')}</span>` : ''}
+          ${recordInfo.newTrophy ? `<span class="badge badge-trophy">🏆 ${BALANCE.difficulty.levels[diffIndex].label}</span>` : ''}
+          <span class="badge badge-pos">${t('podiumPosition')} ${playerPos}/${total}</span>
+        </div>
+      </div>
+
+      <div class="podium-medals">
+        ${results.slice(0, 3).map((r, i) => `
+          <div class="pm pm-${i + 1} ${r.isPlayer ? 'me' : ''}">
+            <span class="pm-medal">${medalFor(i + 1)}</span>
+            <span class="pm-dot" style="background:${r.color}"></span>
+            <span class="pm-name">${r.name}</span>
+            <span class="pm-time">${fmtTime(r.time * 1000)}</span>
+          </div>`).join('')}
+      </div>
+
+      <div class="results-grid">
+        <div class="rg-panel">
+          <h3>${t('podiumRank')}</h3>
+          <ol class="rank-list">
+            ${results.map((r, i) => `<li class="${r.isPlayer ? 'me' : ''}"><span class="pos">${medalFor(i + 1)}</span><i style="background:${r.color}"></i><span class="nm">${r.name}</span><span class="tm">${fmtTime(r.time * 1000)}</span></li>`).join('')}
+          </ol>
+        </div>
+        <div class="rg-panel">
+          <h3>${t('podiumStats')}</h3>
+          <div class="stats-chips">
+            <div class="chip"><span>${t('podiumQuestions')}</span><strong>${stats.questions}</strong></div>
+            <div class="chip"><span>${t('podiumAccuracy')}</span><strong>${acc}%</strong></div>
+            <div class="chip"><span>${t('podiumBestReply')}</span><strong>${bestReply}</strong></div>
+            <div class="chip"><span>${t('podiumTopSpeed')}</span><strong>${Math.round(stats.topSpeedKnots)} nds</strong></div>
+          </div>
+          <div class="trophies-inline">
+            <span class="pt-label">${t('podiumTrophies')} : <strong>${trophyCount}</strong>/5</span>
+            ${trophiesHTML(recordInfo.trophies, { earnedNow: recordInfo.newTrophy ? diffIndex : -1 })}
+          </div>
+        </div>
+      </div>
+
+      <div class="podium-bottom">
+        <div class="podium-replay-diff">
+          <label>${t('preRaceDifficulty')} (Rejouer) : <strong class="pr-diff-label"></strong></label>
+          <input type="range" class="pr-diff-slider" min="0" max="1" step="${1 / (BALANCE.difficulty.levels.length - 1)}" value="${slider}">
+        </div>
+        <div class="podium-actions">
+          <button class="btn" data-act="replay">↻ ${t('podiumReplay')}</button>
+          ${nextCourse && nextUnlocked ? `<button class="btn btn-primary" data-act="next">${t('podiumNext')} →</button>` : ''}
+          <button class="btn btn-ghost" data-act="map">${t('podiumMap')}</button>
+        </div>
+      </div>
+    </div>
   `;
   ctx.root.appendChild(el);
   if (won) confetti(el.querySelector('.confetti'));
