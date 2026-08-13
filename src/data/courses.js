@@ -62,7 +62,7 @@ export const COURSES = [
     country: 'France',
     chapter: 'cir',
     tagline: 'Baie technique, brise thermique tournante.',
-    intro: 'Bienvenue à Saint-Tropez. Première étape : le Crédit d\'Impôt Recherche, le produit historique de Leyton. Distinguez le vrai du faux pour gagner en aisance sur ce sujet clé du cross-selling.',
+    intro: 'Bienvenue à Saint-Tropez. Première étape : le Crédit d\'Impôt Recherche (CIR), souvent la porte d\'entrée de la relation client. Distinguez le vrai du faux pour gagner en aisance sur ce sujet clé du cross-selling.',
     geo: { lat: 43.27, lon: 6.64 },
     wind: { dir: deg(90), strength: 1.0 }, // vent vers le sud
     start: { x: 2100, y: 2500, angle: deg(-90) }, // les bateaux visent le nord au départ
