@@ -27,9 +27,11 @@ export const BALANCE = {
     // Boost = échelle CONTINUE selon la rapidité de réponse (pas de paliers cachés).
     maxAdd: 150,             // ajout de vitesse cible max (réponse instantanée)
     minAdd: 35,              // ajout minimal (bonne réponse au buzzer)
-    maxDuration: 4.2,        // durée max du boost (s) pour réponse ultra-rapide
-    minDuration: 1.6,        // durée min (bonne réponse lente)
-    decayPerSec: 55,         // vitesse à laquelle le boost s'estompe
+    // La vitesse max ne tient qu'~1,5 s : passé ce délai le boost décroît, ce qui
+    // oblige à répondre à une nouvelle question pour maintenir la vitesse max.
+    maxDuration: 1.5,        // durée du boost (s) pour une réponse ultra-rapide
+    minDuration: 0.8,        // durée pour une bonne réponse lente
+    decayPerSec: 70,         // vitesse à laquelle le boost s'estompe ensuite
   },
 
   maneuver: {
@@ -40,6 +42,11 @@ export const BALANCE = {
     // Après la réponse, le ralenti est maintenu ce délai (s, temps réel) avant
     // que le jeu ne reparte à vitesse normale.
     resumeDelay: 1.0,
+  },
+
+  penalty: {
+    // Mauvaise réponse : la vitesse est immédiatement divisée par 2.
+    wrongSpeedMult: 0.5,
   },
 
   splashdown: {
@@ -74,11 +81,12 @@ export const BALANCE = {
 
   difficulty: {
     // 5 crans, du plus facile au plus extrême. Interpolation continue entre crans.
+    // timeLimit = temps RÉEL (s) pour répondre. Plafond : 6 s (très facile).
     levels: [
-      { key: 'tresFacile', label: 'Très facile', maxOperand: 9,  carry: false, timeLimit: 9.0, botSkill: 0.40, botSpeed: 2.6 },
-      { key: 'facile',     label: 'Facile',      maxOperand: 20, carry: false, timeLimit: 7.5, botSkill: 0.55, botSpeed: 2.1 },
-      { key: 'moyen',      label: 'Moyen',       maxOperand: 49, carry: true,  timeLimit: 6.0, botSkill: 0.68, botSpeed: 1.7 },
-      { key: 'difficile',  label: 'Difficile',   maxOperand: 99, carry: true,  timeLimit: 5.0, botSkill: 0.80, botSpeed: 1.3 },
+      { key: 'tresFacile', label: 'Très facile', maxOperand: 9,  carry: false, timeLimit: 6.0, botSkill: 0.40, botSpeed: 2.6 },
+      { key: 'facile',     label: 'Facile',      maxOperand: 20, carry: false, timeLimit: 5.5, botSkill: 0.55, botSpeed: 2.1 },
+      { key: 'moyen',      label: 'Moyen',       maxOperand: 49, carry: true,  timeLimit: 5.0, botSkill: 0.68, botSpeed: 1.7 },
+      { key: 'difficile',  label: 'Difficile',   maxOperand: 99, carry: true,  timeLimit: 4.5, botSkill: 0.80, botSpeed: 1.3 },
       { key: 'extreme',    label: 'Extrême',     maxOperand: 199,carry: true,  timeLimit: 3.8, botSkill: 0.90, botSpeed: 1.0 },
     ],
     defaultIndex: 1,

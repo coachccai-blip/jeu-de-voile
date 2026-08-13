@@ -51,7 +51,7 @@ export const STRINGS = {
     hudWind: 'Vent',
 
     // Présentateur (intro de course)
-    presenterName: 'Max Écume',
+    presenterName: 'Clém Oussaillon',
     presenterRole: 'Votre présentateur',
     introStart: '🏁 C\'est parti !',
 

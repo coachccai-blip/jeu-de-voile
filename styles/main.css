@@ -396,8 +396,9 @@ input[type=range]::-moz-range-thumb {
 .podium-trophies { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
 .podium-trophies .pt-label { color: var(--text-dim); }
 .podium-trophies .trophy { font-size: 1.6rem; }
-.podium-cols { flex: 1 1 auto; min-height: 0; display: flex; gap: 24px; padding: 6px 26px 14px; flex-wrap: wrap; justify-content: center; align-items: stretch; }
-.podium-stand { flex: 1; min-width: 300px; display: flex; align-items: flex-end; justify-content: center; gap: 14px; padding-top: 30px; }
+/* Grille : [espace] [PODIUM centré] [stats]. Le podium reste au centre de l'écran. */
+.podium-cols { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; padding: 6px 26px 14px; align-items: center; }
+.podium-stand { grid-column: 2; display: flex; align-items: flex-end; justify-content: center; gap: 14px; }
 .stand { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 90px; }
 .stand.empty { visibility: hidden; }
 .stand-boat { width: 46px; height: 46px; border-radius: 12px; box-shadow: var(--shadow); border: 2px solid rgba(255,255,255,0.4); }
@@ -412,7 +413,13 @@ input[type=range]::-moz-range-thumb {
 .stand.place-2 .stand-block { height: 110px; }
 .stand.place-3 .stand-block { height: 85px; }
 .stand.me .stand-name { color: var(--accent); }
-.podium-side { flex: 1; min-width: 300px; max-width: 460px; min-height: 0; overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; }
+.podium-side { grid-column: 3; justify-self: end; width: min(420px, 100%); max-height: 100%; min-height: 0; overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; }
+/* Écrans étroits : on empile, tout reste centré. */
+@media (max-width: 900px) {
+  .podium-cols { grid-template-columns: 1fr; justify-items: center; }
+  .podium-stand, .podium-side { grid-column: 1; }
+  .podium-side { justify-self: stretch; width: 100%; }
+}
 .podium-side h3 { margin: 14px 0 8px; font-size: 1rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 .podium-side h3:first-child { margin-top: 0; }
 .rank-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
@@ -427,7 +434,12 @@ input[type=range]::-moz-range-thumb {
 .stats-grid span { font-size: 0.75rem; color: var(--text-dim); }
 .stats-grid strong { font-size: 1.25rem; color: var(--accent); }
 .best-times { list-style: decimal inside; color: var(--text-dim); font-variant-numeric: tabular-nums; }
-.podium-actions { flex: 0 0 auto; display: flex; gap: 12px; justify-content: center; padding: 12px 20px 18px; flex-wrap: wrap; background: linear-gradient(0deg, rgba(4,20,34,0.6), transparent); }
+.podium-bottom { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; padding: 10px 20px 16px; background: linear-gradient(0deg, rgba(4,20,34,0.7), transparent); }
+.podium-replay-diff { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; max-width: 440px; margin: 0 auto; }
+.podium-replay-diff label { font-size: 0.85rem; color: var(--text-dim); }
+.podium-replay-diff .pr-diff-label { color: var(--accent); }
+.podium-replay-diff input[type=range] { max-width: 320px; }
+.podium-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
 
 /* ---------------- RÉGLAGES / CRÉDITS ---------------- */

@@ -168,18 +168,18 @@ export class RaceEngine {
       this.raceClock += sdt;
       if (this.cooldown > 0) this.cooldown = Math.max(0, this.cooldown - sdt);
 
-      // Question chronométrée (source de vérité = horloge sim)
+      // Question chronométrée en TEMPS RÉEL (indépendant du ralenti) : max 6 s.
       if (this.man === MAN.QUESTION && this.currentQuestion) {
-        const elapsed = this.raceClock - this.qStartClock;
+        this.qElapsed += dt; // temps réel
         const tl = this.currentQuestion.timeLimit;
-        const remaining = Math.max(0, tl - elapsed);
+        const remaining = Math.max(0, tl - this.qElapsed);
         this._emit('onQuestionTick', remaining, remaining / tl);
         // tic-tac sur la fin
         if (remaining < 3) {
           const s = Math.ceil(remaining);
           if (s !== this._lastTick) { this._lastTick = s; if (s > 0) audio.sfx('tick'); }
         }
-        if (elapsed >= tl) this._resolveAnswer(-1, true);
+        if (this.qElapsed >= tl) this._resolveAnswer(-1, true);
       }
 
       // Bots
@@ -270,7 +270,7 @@ export class RaceEngine {
     if (!q) return false;
     this.currentQuestion = q;
     this.man = MAN.QUESTION;
-    this.qStartClock = this.raceClock;
+    this.qElapsed = 0; // chrono de réponse en temps réel
     this._lastTick = null;
     audio.sfx('qcmOpen');
     this._emit('onQuestionShow', { prompt: q.prompt, choices: q.choices, timeLimit: q.timeLimit });
@@ -284,7 +284,7 @@ export class RaceEngine {
 
   _resolveAnswer(index, timedOut) {
     const q = this.currentQuestion;
-    const elapsed = this.raceClock - this.qStartClock;
+    const elapsed = this.qElapsed; // temps réel écoulé
     const correct = !timedOut && index === q.correctIndex;
     this.stats.questions++;
     // Maintien du ralenti 1 s après la réponse, puis retour à la vitesse normale.
@@ -310,8 +310,11 @@ export class RaceEngine {
       this.aimPreview = { heading: this.player.heading, mul: 1 };
       this._emit('onAimStart');
     } else {
-      // Mauvaise réponse : pas de boost, trajectoire conservée, cooldown = pénalité.
+      // Mauvaise réponse : pas de boost, trajectoire conservée, cooldown = pénalité,
+      // et la vitesse est immédiatement divisée par 2.
       audio.sfx('wrong');
+      this.player.speed *= BALANCE.penalty.wrongSpeedMult;
+      this.player.boostAdd = 0; this.player.boostTimer = 0;
       this.player.failStreak++;
       const S = BALANCE.splashdown;
       if (this.player.failStreak >= S.failThreshold &&

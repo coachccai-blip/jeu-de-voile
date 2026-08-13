@@ -398,20 +398,32 @@ export function renderPodium(ctx, { results, won, courseId, slider, diffIndex, r
         <ol class="best-times">${(recordInfo.bestTimes || []).map(bt => `<li>${fmtTime(bt)}</li>`).join('') || '<li>—</li>'}</ol>
       </div>
     </div>
-    <div class="podium-actions">
-      <button class="btn" data-act="replay">↻ ${t('podiumReplay')}</button>
-      ${nextCourse && nextUnlocked ? `<button class="btn btn-primary" data-act="next">${t('podiumNext')} →</button>` : ''}
-      <button class="btn btn-ghost" data-act="map">${t('podiumMap')}</button>
+    <div class="podium-bottom">
+      <div class="podium-replay-diff">
+        <label>${t('preRaceDifficulty')} (Rejouer) : <strong class="pr-diff-label"></strong></label>
+        <input type="range" class="pr-diff-slider" min="0" max="1" step="${1 / (BALANCE.difficulty.levels.length - 1)}" value="${slider}">
+      </div>
+      <div class="podium-actions">
+        <button class="btn" data-act="replay">↻ ${t('podiumReplay')}</button>
+        ${nextCourse && nextUnlocked ? `<button class="btn btn-primary" data-act="next">${t('podiumNext')} →</button>` : ''}
+        <button class="btn btn-ghost" data-act="map">${t('podiumMap')}</button>
+      </div>
     </div>
     ${won ? '<canvas class="confetti"></canvas>' : ''}
   `;
   ctx.root.appendChild(el);
   if (won) confetti(el.querySelector('.confetti'));
+  // Sélecteur de difficulté pour Rejouer (5 crans), pré-réglé sur la partie jouée.
+  const prDiff = el.querySelector('.pr-diff-slider');
+  const prLabel = el.querySelector('.pr-diff-label');
+  const updPr = () => { prLabel.textContent = BALANCE.difficulty.levels[difficultyIndexFromSlider(parseFloat(prDiff.value))].label; };
+  updPr();
+  prDiff.addEventListener('input', () => { updPr(); setSetting('lastDifficulty', parseFloat(prDiff.value)); });
   el.querySelectorAll('button[data-act]').forEach(b => {
     btnSfx(b);
     b.addEventListener('click', () => {
       const a = b.dataset.act;
-      if (a === 'replay') ctx.go('race', { courseId, slider });
+      if (a === 'replay') ctx.go('race', { courseId, slider: parseFloat(prDiff.value) });
       else if (a === 'next') ctx.go('precourse', { courseId: nextCourse.id });
       else ctx.go('campaign');
     });
