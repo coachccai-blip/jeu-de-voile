@@ -8,15 +8,16 @@
  * La ligne de départ et d'arrivée sont dérivées de `start`.
  */
 
+// Couleurs pastel, lisibles sur l'océan sombre. Le joueur est en bleu pastel.
 export const TEAMS = [
-  { id: 'fr', name: 'France',     color: '#2f6fed', sail: '#ffffff' },
-  { id: 'au', name: 'Australie',  color: '#e0b020', sail: '#0a2540' },
-  { id: 'gb', name: 'Albion',     color: '#d43a3a', sail: '#ffffff' },
-  { id: 'nz', name: 'Zélande',    color: '#111820', sail: '#20c997' },
-  { id: 'us', name: 'Liberty',    color: '#7b3ff2', sail: '#ffd43b' },
+  { id: 'joueur', name: 'Joueur', color: '#8FB6F2', sail: '#ffffff' }, // bleu pastel (joueur)
+  { id: 'david',  name: 'David',  color: '#9FE3B4', sail: '#ffffff' }, // vert menthe pastel
+  { id: 'pierre', name: 'Pierre', color: '#F6B482', sail: '#ffffff' }, // pêche pastel
+  { id: 'agnes',  name: 'Agnès',  color: '#F2A9C4', sail: '#ffffff' }, // rose pastel
+  { id: 'sabra',  name: 'Sabra',  color: '#C7A9EC', sail: '#ffffff' }, // lavande pastel
 ];
 
-// Le joueur est toujours l'équipe index 0 (France) ; les bots prennent les suivantes.
+// Le joueur est toujours l'équipe index 0 ; les bots prennent les suivantes.
 export const PLAYER_TEAM_INDEX = 0;
 
 function deg(d) { return d * Math.PI / 180; }
