@@ -8,6 +8,8 @@
  * Une course peut fournir sa propre instance de banque (ex. maths, géo, anglais…).
  */
 
+import { getChapter } from './leyton.js';
+
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -72,17 +74,66 @@ export class ProceduralMathBank {
   }
 }
 
-// Banque par défaut de la v1.
+// Banque par défaut (calcul mental) — utilisée par le TUTORIEL uniquement.
 export const defaultBank = new ProceduralMathBank();
 
 /**
- * Registre de banques : une course référence une banque par sa clé.
- * Prêt pour l'avenir (maths / conjugaison / géo / anglais…).
+ * VraiFauxBank — banque « vrai ou faux » cantonnée à UN produit Leyton (un chapitre).
+ * Chaque question est une affirmation (vraie ou fausse) ; le joueur répond Vrai/Faux.
+ * Interface identique : getNextQuestion() → { type:'vraifaux', prompt, choices, correctIndex, timeLimit }
  */
-export const BANK_REGISTRY = {
-  'math-proc': defaultBank,
-};
+export class VraiFauxBank {
+  constructor(chapter, timeLimit) {
+    this.id = 'vf-' + chapter.id;
+    this.label = chapter.short;
+    this.chapter = chapter;
+    this.timeLimit = timeLimit || VF_TIME_LIMIT;
+    this._reshuffle();
+  }
 
+  _reshuffle() {
+    const pool = [];
+    for (const text of this.chapter.vrai) pool.push({ text, isTrue: true });
+    for (const text of this.chapter.faux) pool.push({ text, isTrue: false });
+    shuffle(pool);
+    this.pool = pool;
+    this.cursor = 0;
+  }
+
+  getNextQuestion() {
+    if (!this.pool.length) return null;
+    if (this.cursor >= this.pool.length) this._reshuffle();
+    const item = this.pool[this.cursor++];
+    return {
+      type: 'vraifaux',
+      prompt: item.text,
+      choices: ['Vrai', 'Faux'],
+      correctIndex: item.isTrue ? 0 : 1,
+      timeLimit: this.timeLimit,
+    };
+  }
+}
+
+// Temps RÉEL max (s) pour répondre à une affirmation vrai/faux.
+export const VF_TIME_LIMIT = 8;
+
+// Une banque vrai/faux par chapitre Leyton (construites à la demande, mises en cache).
+const _vfCache = {};
+export function getVraiFauxBank(chapterId) {
+  if (_vfCache[chapterId]) return _vfCache[chapterId];
+  const chapter = getChapter(chapterId);
+  if (!chapter) return defaultBank;
+  const bank = new VraiFauxBank(chapter);
+  _vfCache[chapterId] = bank;
+  return bank;
+}
+
+/**
+ * Registre de banques. 'math-proc' = tutoriel (calcul). Sinon on cherche un
+ * chapitre Leyton du même id → banque vrai/faux cantonnée à ce produit.
+ */
 export function getBank(key) {
-  return BANK_REGISTRY[key] || defaultBank;
+  if (!key || key === 'math-proc') return defaultBank;
+  if (getChapter(key)) return getVraiFauxBank(key);
+  return defaultBank;
 }

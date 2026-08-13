@@ -23,9 +23,10 @@ export class RaceEngine {
     this.ctx = canvas.getContext('2d');
     this.course = course;
     this.difficulty = difficultyFromSlider(sliderValue);
-    this.bank = getBank(course.bankKey || 'math-proc');
-    this.callbacks = {};
     this.tutorial = !!opts.tutorial;
+    // Tutoriel = calcul mental ; courses = banque vrai/faux du produit Leyton.
+    this.bank = this.tutorial ? getBank('math-proc') : getBank(course.chapter);
+    this.callbacks = {};
 
     this.phase = PHASE.PRESTART;
     this.man = MAN.NONE;
@@ -296,7 +297,7 @@ export class RaceEngine {
     this.qElapsed = 0; // chrono de réponse en temps réel
     this._lastTick = null;
     audio.sfx('qcmOpen');
-    this._emit('onQuestionShow', { prompt: q.prompt, choices: q.choices, timeLimit: q.timeLimit });
+    this._emit('onQuestionShow', { type: q.type, prompt: q.prompt, choices: q.choices, timeLimit: q.timeLimit });
     return true;
   }
 

@@ -1,9 +1,18 @@
-# ⛵ Regatta Quiz
+# ⛵ Regatta Quiz — Leyton « Vrai ou Faux »
 
-Jeu de **course à la voile éducatif** inspiré de **SailGP** (catamarans F50 à foils),
-en vue du dessus. Affrontez 4 bots sur un parcours à bouées : pour manœuvrer et
-accélérer, répondez vite et juste à des questions de **calcul mental**. Stratégie
-(vent, courants, trajectoires) + rapidité = sensation de vol sur foils.
+Jeu de **course à la voile** inspiré de **SailGP** (catamarans F50 à foils), détourné
+en **outil d'entraînement Leyton**. Affrontez 4 concurrents sur un parcours à bouées :
+pour manœuvrer et accélérer, jugez **Vrai ou Faux** des affirmations sur les
+**8 produits Leyton** (du CIR à la fiscalité de l'énergie). Stratégie (vent, courants,
+trajectoires) + rapidité + maîtrise du produit = victoire.
+
+- **8 courses = 8 chapitres/produits.** Chaque course pioche dans les 30 affirmations
+  vraies + 30 fausses de son produit (banque cantonnée au chapitre).
+- **Vrai / Faux** (8 s max par affirmation), touches `V` / `F`.
+- **Fiche mémo** avant chaque course : présentation pédagogique du produit + toutes les
+  réponses (vraies et fausses) pour réviser.
+- Le **tutoriel** reste du calcul mental (hors produits Leyton).
+- La difficulté ne change que la **vitesse des adversaires**.
 
 > Prototype **v1** — HTML/CSS/JavaScript (ES modules), **Canvas 2D**, **zéro dépendance**,
 > **100 % hors ligne**. Audio entièrement procédural (Web Audio API), libre de droits.

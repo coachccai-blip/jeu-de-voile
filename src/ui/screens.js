@@ -6,6 +6,7 @@
 import { t } from '../i18n/strings.js';
 import { audio } from '../audio/audio.js';
 import { COURSES, TEAMS, courseIndex, geoToMap } from '../data/courses.js';
+import { getChapter } from '../data/leyton.js';
 import { BALANCE, difficultyFromSlider, difficultyIndexFromSlider } from '../config/balance.js';
 import { drawWorldMap } from './worldmap.js';
 import { canInstall, isInstalled, isIOS, promptInstall, onPwaChange } from '../pwa.js';
@@ -171,12 +172,14 @@ export function renderMap(ctx) {
     node.style.left = (pos.x * 100) + '%';
     node.style.top = (pos.y * 100) + '%';
     const tcount = prog.trophies.filter(Boolean).length;
+    const chapter = getChapter(c.chapter);
+    const product = chapter ? chapter.short : c.name;
     node.innerHTML = `
       <span class="site-dot">${tcount > 0 ? `<span class="site-count">${tcount}</span>` : ''}</span>
-      <span class="site-name-tag">${c.name}</span>
+      <span class="site-name-tag"><b class="site-num">${idx + 1}</b> ${product}</span>
       <span class="site-card">
-        <strong>${c.name}</strong>
-        <em>${c.country}</em>
+        <strong>${chapter ? chapter.title : c.name}</strong>
+        <em>${c.name} · ${c.country}</em>
         <span class="site-status">${prog.won ? '🏆 ' + t('mapWon') : unlocked ? t('mapAvailable') : '🔒 ' + t('mapLocked')}</span>
         <span class="site-trophies-label">${t('mapTrophies')} ${prog.trophies.filter(Boolean).length}/5</span>
         ${trophiesHTML(prog.trophies)}
@@ -243,10 +246,38 @@ function startWorldCanvas(canvas) {
   canvas._stop = () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
 }
 
+/** Fiche mémo : présentation pédagogique du produit + toutes les réponses (révision). */
+function openMemo(root, chapter) {
+  audio.sfx('uiClick');
+  const ov = document.createElement('div');
+  ov.className = 'memo-overlay';
+  ov.innerHTML = `
+    <div class="memo-card">
+      <div class="memo-head">
+        <div><h2>${chapter.title}</h2><div class="memo-sub">${t('memoTitle')} · ${chapter.short}</div></div>
+        <button class="btn btn-ghost memo-close">✕ ${t('memoClose')}</button>
+      </div>
+      <div class="memo-body">
+        <p class="memo-hint">${t('memoHint')}</p>
+        <h3>${t('memoIntro')}</h3>
+        <div class="memo-intro">${chapter.intro.map(p => `<p>${p}</p>`).join('')}</div>
+        <h3 class="mt">✓ ${t('memoTrue')} (${chapter.vrai.length})</h3>
+        <ul class="memo-list mt">${chapter.vrai.map(s => `<li><span>${s}</span></li>`).join('')}</ul>
+        <h3 class="mf">✗ ${t('memoFalse')} (${chapter.faux.length})</h3>
+        <ul class="memo-list mf">${chapter.faux.map(s => `<li><span>${s}</span></li>`).join('')}</ul>
+      </div>
+    </div>`;
+  root.appendChild(ov);
+  const close = () => { audio.sfx('uiClick'); ov.remove(); };
+  ov.querySelector('.memo-close').addEventListener('click', close);
+  ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+}
+
 // ─────────────────────────── PRÉ-COURSE ───────────────────────────
 export function renderPreCourse(ctx, { courseId }) {
   clear(ctx.root);
   const course = COURSES.find(c => c.id === courseId);
+  const chapter = getChapter(course.chapter);
   const settings = getSettings();
   const prog = getCourseProgress(courseId);
   const nLevels = BALANCE.difficulty.levels.length;
@@ -265,9 +296,13 @@ export function renderPreCourse(ctx, { courseId }) {
         <p class="course-tag">${course.tagline}</p>
       </div>
       <div class="precourse-info">
+        ${chapter ? `<div class="product-banner">
+          <span class="product-label">${t('preRaceProduct')}</span>
+          <strong class="product-name">${chapter.title}</strong>
+          <button class="btn memo-btn">${t('memoOpen')}</button>
+        </div>` : ''}
         <div class="info-row"><span>${t('preRaceBuoys')}</span><strong>${course.marks.length}</strong></div>
         <div class="info-row"><span>${t('preRaceWind')}</span><strong>${Math.round(course.wind.strength * 20)} nds</strong></div>
-        <div class="info-row"><span>${t('preRaceCurrent')}</span><strong>${(course.currents || []).length} zone(s)</strong></div>
         <div class="info-row rivals"><span>${t('preRaceRivals')}</span>
           <span class="rival-dots">${TEAMS.slice(1).map(tm => `<i style="background:${tm.color}" title="${tm.name}"></i>`).join('')}</span>
         </div>
@@ -286,6 +321,11 @@ export function renderPreCourse(ctx, { courseId }) {
   `;
   ctx.root.appendChild(el);
   drawCoursePreview(el.querySelector('.preview-canvas'), course);
+  if (chapter) {
+    const memoBtn = el.querySelector('.memo-btn');
+    btnSfx(memoBtn);
+    memoBtn.addEventListener('click', () => openMemo(el, chapter));
+  }
   const diffSlider = el.querySelector('.diff-slider');
   const diffLabel = el.querySelector('.diff-label');
   const ptRow = el.querySelector('.pt-row');

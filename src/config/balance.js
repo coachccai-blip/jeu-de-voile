@@ -87,11 +87,11 @@ export const BALANCE = {
     // (système vrai/faux). maxOperand/carry/timeLimit sont donc CONSTANTS.
     // timeLimit = temps RÉEL (s) pour répondre (≤ 6 s).
     levels: [
-      { key: 'tresFacile', label: 'Très facile', maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.30, botSpeed: 3.0 },
-      { key: 'facile',     label: 'Facile',      maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.45, botSpeed: 2.5 },
-      { key: 'moyen',      label: 'Moyen',       maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.60, botSpeed: 2.0 },
-      { key: 'difficile',  label: 'Difficile',   maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.75, botSpeed: 1.6 },
-      { key: 'extreme',    label: 'Extrême',     maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.92, botSpeed: 1.3 },
+      { key: 'tresFacile', label: 'Très facile', maxOperand: 10, carry: false, timeLimit: 8.0, botSkill: 0.30, botSpeed: 3.0 },
+      { key: 'facile',     label: 'Facile',      maxOperand: 10, carry: false, timeLimit: 8.0, botSkill: 0.45, botSpeed: 2.5 },
+      { key: 'moyen',      label: 'Moyen',       maxOperand: 10, carry: false, timeLimit: 8.0, botSkill: 0.60, botSpeed: 2.0 },
+      { key: 'difficile',  label: 'Difficile',   maxOperand: 10, carry: false, timeLimit: 8.0, botSkill: 0.75, botSpeed: 1.6 },
+      { key: 'extreme',    label: 'Extrême',     maxOperand: 10, carry: false, timeLimit: 8.0, botSkill: 0.92, botSpeed: 1.3 },
     ],
     defaultIndex: 1,
   },

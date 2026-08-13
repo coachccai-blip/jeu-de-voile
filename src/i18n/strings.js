@@ -64,6 +64,18 @@ export const STRINGS = {
     qcmCorrect: 'Juste !',
     qcmWrong: 'Faux',
     qcmBoost: 'BOOST',
+    answerTrue: 'VRAI',
+    answerFalse: 'FAUX',
+
+    // Produit / fiche mémo
+    preRaceProduct: 'Produit',
+    memoOpen: '📖 Fiche mémo (réviser)',
+    memoTitle: 'Fiche mémo',
+    memoIntro: 'Présentation',
+    memoTrue: 'Affirmations VRAIES',
+    memoFalse: 'Affirmations FAUSSES',
+    memoClose: 'Fermer',
+    memoHint: 'Révisez avant de prendre le départ : les affirmations de la course viennent de ce produit.',
 
     // Feedback course
     fbFoiling: 'SUR FOILS !',

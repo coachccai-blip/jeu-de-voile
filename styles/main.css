@@ -173,6 +173,11 @@ body {
   flex: 1; max-width: 420px; background: var(--panel); border: 1px solid var(--border);
   border-radius: var(--r); padding: 22px; display: flex; flex-direction: column; gap: 14px;
 }
+.product-banner { display: flex; flex-direction: column; gap: 6px; background: linear-gradient(135deg, rgba(47,143,214,0.16), rgba(33,212,168,0.10)); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.product-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+.product-name { font-size: 1.05rem; line-height: 1.3; }
+.product-banner .memo-btn { margin-top: 6px; align-self: flex-start; padding: 8px 14px; min-height: 40px; font-size: 0.9rem; }
+.site-num { color: var(--accent); margin-right: 2px; }
 .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .info-row strong { font-size: 1.15rem; color: var(--accent); }
 .rival-dots { display: flex; gap: 6px; }
@@ -382,6 +387,40 @@ input[type=range]::-moz-range-thumb {
 }
 .qcm-verdict.ok { background: var(--accent-2); color: #002a20; }
 .qcm-verdict.ko { background: var(--danger); color: #fff; }
+
+/* --- QCM Vrai/Faux (affirmations Leyton) --- */
+.qcm.vf { width: min(720px, 96vw); }
+.qcm.vf .qcm-prompt {
+  font-size: clamp(1rem, 2.4vw, 1.3rem); font-weight: 600; letter-spacing: 0;
+  font-variant-numeric: normal; text-align: center; line-height: 1.45;
+  white-space: normal; max-height: 34vh; overflow-y: auto; margin-bottom: 14px;
+}
+.qcm.vf .qcm-choices { grid-template-columns: 1fr 1fr; }
+.qcm-choice.vf-true { background: linear-gradient(180deg, #24b47e, #178a5e); border-color: #4dffb0; }
+.qcm-choice.vf-true:hover { background: linear-gradient(180deg, #2ac48b, #199a68); }
+.qcm-choice.vf-false { background: linear-gradient(180deg, #d64a3f, #a5342b); border-color: #ff9a8f; }
+.qcm-choice.vf-false:hover { background: linear-gradient(180deg, #e2564b, #b53a30); }
+.qcm-choice .qcm-key { font-size: 0.8rem; font-weight: 800; color: #fff; background: rgba(0,0,0,0.28); border-radius: 6px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+
+/* --- Fiche mémo (révision produit) --- */
+.memo-overlay { position: fixed; inset: 0; z-index: 45; background: rgba(4,20,34,0.85); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.memo-card { width: min(820px, 96vw); max-height: 90vh; display: flex; flex-direction: column; background: var(--panel-2); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+.memo-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.memo-head h2 { font-size: 1.3rem; }
+.memo-head .memo-sub { font-size: 0.85rem; color: var(--text-dim); }
+.memo-body { overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; }
+.memo-body h3 { margin-top: 12px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+.memo-body h3.mt { color: var(--accent-2); }
+.memo-body h3.mf { color: var(--danger); }
+.memo-intro p { line-height: 1.6; margin-bottom: 8px; color: var(--text); }
+.memo-hint { font-style: italic; color: var(--text-dim); font-size: 0.85rem; }
+.memo-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.memo-list li { display: flex; gap: 8px; align-items: flex-start; padding: 7px 10px; border-radius: 8px; background: rgba(255,255,255,0.03); line-height: 1.4; }
+.memo-list li::before { flex: 0 0 auto; font-weight: 800; }
+.memo-list.mt li { border-left: 3px solid var(--accent-2); }
+.memo-list.mt li::before { content: '✓'; color: var(--accent-2); }
+.memo-list.mf li { border-left: 3px solid var(--danger); }
+.memo-list.mf li::before { content: '✗'; color: var(--danger); }
 
 /* ---------------- RÉSULTATS / PODIUM (refonte) ---------------- */
 /* Écran de résultats broadcast : tout tient à l'écran, le TEMPS est la vedette. */

@@ -21,8 +21,14 @@ export class QCM {
     this.promptEl = this.el.querySelector('.qcm-prompt');
     this.choicesEl = this.el.querySelector('.qcm-choices');
     this.active = false;
+    this._vf = false;
     this._keyHandler = (e) => {
       if (!this.active) return;
+      if (this._vf) {
+        const k = e.key.toLowerCase();
+        if (k === 'v' || k === '1') { this._answer(0); return; }
+        if (k === 'f' || k === '2') { this._answer(1); return; }
+      }
       const n = parseInt(e.key, 10);
       if (n >= 1 && n <= 4) this._answer(n - 1);
     };
@@ -32,15 +38,33 @@ export class QCM {
   show(q) {
     this.active = true;
     this.locked = false;
-    this.promptEl.textContent = `${q.prompt} = ?`;
+    this._vf = q.type === 'vraifaux';
+    this.el.classList.toggle('vf', this._vf);
     this.choicesEl.innerHTML = '';
-    q.choices.forEach((c, i) => {
-      const b = document.createElement('button');
-      b.className = 'qcm-choice';
-      b.innerHTML = `<span class="qcm-num">${i + 1}</span><span class="qcm-val">${c}</span>`;
-      b.addEventListener('click', () => this._answer(i));
-      this.choicesEl.appendChild(b);
-    });
+    if (this._vf) {
+      // Affirmation à juger : on affiche le texte tel quel + 2 boutons Vrai/Faux.
+      this.promptEl.textContent = q.prompt;
+      const labels = [
+        { txt: t('answerTrue'), cls: 'vf-true', key: 'V' },
+        { txt: t('answerFalse'), cls: 'vf-false', key: 'F' },
+      ];
+      labels.forEach((l, i) => {
+        const b = document.createElement('button');
+        b.className = `qcm-choice ${l.cls}`;
+        b.innerHTML = `<span class="qcm-key">${l.key}</span><span class="qcm-val">${l.txt}</span>`;
+        b.addEventListener('click', () => this._answer(i));
+        this.choicesEl.appendChild(b);
+      });
+    } else {
+      this.promptEl.textContent = `${q.prompt} = ?`;
+      q.choices.forEach((c, i) => {
+        const b = document.createElement('button');
+        b.className = 'qcm-choice';
+        b.innerHTML = `<span class="qcm-num">${i + 1}</span><span class="qcm-val">${c}</span>`;
+        b.addEventListener('click', () => this._answer(i));
+        this.choicesEl.appendChild(b);
+      });
+    }
     this.el.classList.remove('hidden', 'answered');
     requestAnimationFrame(() => this.el.classList.add('show'));
   }
