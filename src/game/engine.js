@@ -64,7 +64,17 @@ export class RaceEngine {
     const s = this.course.start;
     cps.push({ x: s.x, y: s.y, label: 'Arrivée', finish: true });
     this.checkpoints = cps;
-    this.startLine = this._lineFrom(s.x, s.y, s.angle, 220);
+    this.startLine = this._lineFrom(s.x, s.y, s.angle, 240);
+    // Hitbox d'arrivée = un GRAND rectangle invisible couvrant TOUTE la ligne
+    // (sur toute sa longueur + un peu au-delà des bouées) et une bonne profondeur :
+    // entrer dedans déclenche la victoire, où que ce soit sur la ligne.
+    this.finishZone = {
+      cx: s.x, cy: s.y,
+      ux: Math.cos(s.angle + Math.PI / 2), uy: Math.sin(s.angle + Math.PI / 2), // le long de la ligne
+      nx: Math.cos(s.angle), ny: Math.sin(s.angle),                             // axe d'approche
+      halfLen: 280,   // demi-longueur le long de la ligne (couvre toute la ligne + marge)
+      halfDepth: 90,  // demi-épaisseur autour de la ligne
+    };
   }
 
   _lineFrom(x, y, angle, half) {
@@ -230,11 +240,15 @@ export class RaceEngine {
     if (!cp) return;
     let reached;
     if (cp.finish) {
-      // TOUTE la ligne d'arrivée compte : on détecte le franchissement du segment
-      // (trajectoire prev→cur qui coupe la ligne), n'importe où sur sa longueur.
+      // Grand rectangle invisible couvrant toute la ligne : être DEDANS = arrivée.
+      const z = this.finishZone;
+      const dx = b.x - z.cx, dy = b.y - z.cy;
+      const along = dx * z.ux + dy * z.uy; // position le long de la ligne
+      const depth = dx * z.nx + dy * z.ny; // position sur l'axe d'approche
+      const inZone = Math.abs(along) <= z.halfLen && Math.abs(depth) <= z.halfDepth;
+      // + franchissement du segment (filet de sécurité si passage très rapide).
       const l = this.startLine;
-      reached = segmentsIntersect(b.prevX, b.prevY, b.x, b.y, l.ax, l.ay, l.bx, l.by)
-        || dist(b.x, b.y, cp.x, cp.y) < BALANCE.race.buoyRadius * 2.5; // filet de sécurité
+      reached = inZone || segmentsIntersect(b.prevX, b.prevY, b.x, b.y, l.ax, l.ay, l.bx, l.by);
     } else {
       reached = dist(b.x, b.y, cp.x, cp.y) < BALANCE.race.buoyRadius + BALANCE.boat.length * 0.4;
     }
