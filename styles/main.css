@@ -297,6 +297,9 @@ input[type=range]::-moz-range-thumb {
   opacity: 0; transition: opacity .22s, transform .22s; z-index: 12; backdrop-filter: blur(8px);
 }
 .qcm.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* Une fois répondu : le panneau ne capte plus les clics → le bas de l'écran est
+   immédiatement cliquable pour choisir le cap. */
+.qcm.answered, .qcm.answered .qcm-choice { pointer-events: none; }
 .qcm-timer { height: 8px; background: rgba(255,255,255,0.12); border-radius: 5px; overflow: hidden; margin-bottom: 12px; }
 .qcm-timer-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent-2), var(--accent)); border-radius: 5px; transition: width .12s linear; }
 .qcm-timer-fill.urgent { background: linear-gradient(90deg, var(--accent), var(--danger)); }

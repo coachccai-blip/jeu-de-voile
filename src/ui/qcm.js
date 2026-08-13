@@ -41,13 +41,15 @@ export class QCM {
       b.addEventListener('click', () => this._answer(i));
       this.choicesEl.appendChild(b);
     });
-    this.el.classList.remove('hidden');
+    this.el.classList.remove('hidden', 'answered');
     requestAnimationFrame(() => this.el.classList.add('show'));
   }
 
   _answer(i) {
     if (!this.active || this.locked) return;
     this.locked = true;
+    // Libère aussitôt le bas de l'écran (le joueur peut cliquer pour choisir son cap).
+    this.el.classList.add('answered');
     this.onAnswer(i);
   }
 
@@ -67,7 +69,9 @@ export class QCM {
     label.textContent = correct ? t('qcmCorrect') : (chosenIndex < 0 ? t('qcmTimeUp') : t('qcmWrong'));
     this.el.appendChild(label);
     this.active = false;
-    setTimeout(() => this.hide(label), 620);
+    // Correct : le panneau disparaît quasi immédiatement pour laisser cliquer en bas.
+    // Faux : on laisse voir la bonne réponse un court instant (pas de choix de cap).
+    setTimeout(() => this.hide(label), correct ? 130 : 620);
   }
 
   hide(label) {

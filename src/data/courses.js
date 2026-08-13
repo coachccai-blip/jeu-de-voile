@@ -27,7 +27,7 @@ export const COURSES = [
     name: 'Saint-Tropez',
     country: 'France',
     tagline: 'Baie technique, brise thermique tournante.',
-    mapPos: { x: 0.52, y: 0.42 },
+    geo: { lat: 43.27, lon: 6.64 },
     wind: { dir: deg(90), strength: 1.0 }, // vent vers le sud
     start: { x: 2100, y: 2500, angle: deg(-90) }, // les bateaux visent le nord au départ
     marks: [
@@ -46,7 +46,7 @@ export const COURSES = [
     name: 'Sydney',
     country: 'Australie',
     tagline: 'Vent fort et houle : gros portants.',
-    mapPos: { x: 0.86, y: 0.74 },
+    geo: { lat: -33.86, lon: 151.21 },
     wind: { dir: deg(45), strength: 1.15 },
     start: { x: 1000, y: 2400, angle: deg(-45) },
     marks: [
@@ -64,7 +64,7 @@ export const COURSES = [
     name: 'San Francisco',
     country: 'Liberty',
     tagline: 'Courants de baie puissants sous le pont.',
-    mapPos: { x: 0.14, y: 0.40 },
+    geo: { lat: 37.77, lon: -122.42 },
     wind: { dir: deg(75), strength: 1.05 },
     start: { x: 2100, y: 2600, angle: deg(-100) },
     marks: [
@@ -84,7 +84,7 @@ export const COURSES = [
     name: 'Dubaï',
     country: 'Émirats',
     tagline: 'Plan d\'eau plat, vent stable, sprint pur.',
-    mapPos: { x: 0.66, y: 0.52 },
+    geo: { lat: 25.20, lon: 55.27 },
     wind: { dir: deg(100), strength: 0.95 },
     start: { x: 2100, y: 2500, angle: deg(-90) },
     marks: [
@@ -103,7 +103,7 @@ export const COURSES = [
     name: 'Auckland',
     country: 'Zélande',
     tagline: 'Bascules de vent : la stratégie prime.',
-    mapPos: { x: 0.92, y: 0.86 },
+    geo: { lat: -36.85, lon: 174.76 },
     wind: { dir: deg(60), strength: 1.1 },
     start: { x: 1200, y: 2500, angle: deg(-60) },
     marks: [
@@ -123,7 +123,7 @@ export const COURSES = [
     name: 'Marseille',
     country: 'France',
     tagline: 'Mistral musclé : finale de championnat.',
-    mapPos: { x: 0.49, y: 0.44 },
+    geo: { lat: 43.30, lon: 5.37 },
     wind: { dir: deg(115), strength: 1.2 },
     start: { x: 2100, y: 2600, angle: deg(-115) },
     marks: [
@@ -143,3 +143,12 @@ export const COURSES = [
 
 export function getCourse(id) { return COURSES.find(c => c.id === id); }
 export function courseIndex(id) { return COURSES.findIndex(c => c.id === id); }
+
+/**
+ * Projection équirectangulaire (identique au dessin de la carte) :
+ * lon -180..180 → x 0..1, lat 90..-90 → y 0..1. Renvoie la position normalisée
+ * d'une ville à sa VRAIE position géographique.
+ */
+export function geoToMap(geo) {
+  return { x: (geo.lon + 180) / 360, y: (90 - geo.lat) / 180 };
+}

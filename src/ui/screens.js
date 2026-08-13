@@ -5,7 +5,7 @@
  */
 import { t } from '../i18n/strings.js';
 import { audio } from '../audio/audio.js';
-import { COURSES, TEAMS, courseIndex } from '../data/courses.js';
+import { COURSES, TEAMS, courseIndex, geoToMap } from '../data/courses.js';
 import { BALANCE, difficultyFromSlider } from '../config/balance.js';
 import { drawWorldMap } from './worldmap.js';
 import {
@@ -118,13 +118,15 @@ export function renderMap(ctx) {
   ctx.root.appendChild(el);
   startWorldCanvas(el.querySelector('.world-canvas'));
   const sites = el.querySelector('.sites');
+  const positions = computeSitePositions();
   COURSES.forEach((c, idx) => {
     const unlocked = isUnlocked(idx);
     const prog = getCourseProgress(c.id);
+    const pos = positions[idx];
     const node = document.createElement('button');
     node.className = `site ${unlocked ? 'unlocked' : 'locked'} ${prog.won ? 'won' : ''}`;
-    node.style.left = (c.mapPos.x * 100) + '%';
-    node.style.top = (c.mapPos.y * 100) + '%';
+    node.style.left = (pos.x * 100) + '%';
+    node.style.top = (pos.y * 100) + '%';
     node.innerHTML = `
       <span class="site-dot"></span>
       <span class="site-card">
@@ -141,6 +143,37 @@ export function renderMap(ctx) {
     sites.appendChild(node);
   });
   el.querySelector('[data-back]').addEventListener('click', () => { audio.sfx('uiClick'); ctx.go('menu'); });
+}
+
+/**
+ * Positions des sites = vraie géographie (projection équirectangulaire), avec un
+ * léger écartement anti-chevauchement pour les villes trop proches (ex. Marseille /
+ * Saint-Tropez, distantes de ~60 km, donc quasi au même pixel à l'échelle mondiale).
+ */
+function computeSitePositions() {
+  const pos = COURSES.map(c => geoToMap(c.geo));
+  const minSep = 0.045; // écart minimal (fraction de la largeur)
+  for (let iter = 0; iter < 40; iter++) {
+    let moved = false;
+    for (let i = 0; i < pos.length; i++) {
+      for (let j = i + 1; j < pos.length; j++) {
+        let dx = pos[j].x - pos[i].x, dy = pos[j].y - pos[i].y;
+        let d = Math.hypot(dx, dy);
+        if (d < minSep) {
+          if (d < 1e-6) { dx = 0.01; dy = 0; d = 0.01; }
+          const push = (minSep - d) / 2;
+          const ux = dx / d, uy = dy / d;
+          pos[i].x -= ux * push; pos[i].y -= uy * push;
+          pos[j].x += ux * push; pos[j].y += uy * push;
+          moved = true;
+        }
+      }
+    }
+    if (!moved) break;
+  }
+  // garde les pastilles dans le cadre
+  for (const p of pos) { p.x = Math.max(0.03, Math.min(0.97, p.x)); p.y = Math.max(0.06, Math.min(0.94, p.y)); }
+  return pos;
 }
 
 function startWorldCanvas(canvas) {
