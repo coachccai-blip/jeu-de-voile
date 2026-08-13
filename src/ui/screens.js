@@ -530,7 +530,7 @@ export function renderCredits(ctx) {
 }
 
 // ─────────────────────────── TUTORIEL ───────────────────────────
-export function createTutorial(root, onDone, onBegin) {
+export function createTutorial(root, { onBegin, onGuideDone, onQuit } = {}) {
   const steps = [
     { key: 'tutStep1', advance: 'next' },
     { key: 'tutStep2', advance: 'question' },
@@ -547,6 +547,13 @@ export function createTutorial(root, onDone, onBegin) {
   const textEl = el.querySelector('.tut-text');
   const btn = el.querySelector('.tut-btn');
 
+  // Bouton « Quitter le tutoriel » toujours visible en haut à gauche.
+  const quitBtn = document.createElement('button');
+  quitBtn.className = 'btn btn-ghost tut-quit';
+  quitBtn.textContent = t('tutQuit');
+  quitBtn.addEventListener('click', () => { audio.sfx('uiClick'); onQuit && onQuit(); });
+  root.appendChild(quitBtn);
+
   function show() {
     const s = steps[i];
     textEl.textContent = t(s.key);
@@ -558,7 +565,12 @@ export function createTutorial(root, onDone, onBegin) {
     // Le 1er dialogue passé → la course (top départ) peut démarrer.
     if (i === 0 && onBegin) onBegin();
     i++;
-    if (i >= steps.length) { el.remove(); onDone && onDone(); return; }
+    if (i >= steps.length) {
+      // Dernier dialogue passé : on masque le guide, le joueur peut FINIR la course.
+      el.remove();
+      onGuideDone && onGuideDone();
+      return;
+    }
     show();
   }
   btn.addEventListener('click', () => { audio.sfx('uiClick'); advance(); });
@@ -570,6 +582,6 @@ export function createTutorial(root, onDone, onBegin) {
       if (!s) return;
       if (s.advance === event) advance();
     },
-    destroy() { el.remove(); },
+    destroy() { el.remove(); quitBtn.remove(); },
   };
 }

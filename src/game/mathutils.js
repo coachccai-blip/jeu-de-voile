@@ -27,3 +27,18 @@ export function moveToward(cur, target, maxStep) {
   if (Math.abs(d) <= maxStep) return target;
   return cur + Math.sign(d) * maxStep;
 }
+
+function ccw(ax, ay, bx, by, cx, cy) {
+  return (cy - ay) * (bx - ax) - (by - ay) * (cx - ax);
+}
+
+/** Vrai si le segment AB croise le segment CD (cas colinéaires ignorés). */
+export function segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+  if (![ax, ay, bx, by, cx, cy, dx, dy].every(Number.isFinite)) return false;
+  const d1 = ccw(ax, ay, bx, by, cx, cy);
+  const d2 = ccw(ax, ay, bx, by, dx, dy);
+  const d3 = ccw(cx, cy, dx, dy, ax, ay);
+  const d4 = ccw(cx, cy, dx, dy, bx, by);
+  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+         ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+}

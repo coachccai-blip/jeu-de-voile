@@ -111,16 +111,22 @@ function startTutorial({ fromCampaign } = {}) {
   const course = COURSES[0];
   const { wrap, canvas } = makeCanvas();
   const engine = new RaceEngine(canvas, course, 0.0, { tutorial: true });
-  const finishTut = () => {
+  const endTut = () => {
     setTutorialSeen(true);
     cleanupRace();
     go(fromCampaign ? 'campaign' : 'menu');
   };
   // La course ne démarre (top départ) qu'après le premier dialogue du tutoriel.
-  const tutorial = createTutorial(wrap, finishTut, () => engine.setPaused(false));
+  // Après le dernier dialogue, le joueur peut FINIR la course ; il peut aussi
+  // quitter à tout moment via le bouton « Quitter le tutoriel » (haut-gauche).
+  const tutorial = createTutorial(wrap, {
+    onBegin: () => engine.setPaused(false),
+    onGuideDone: () => { /* guide terminé : le joueur court jusqu'à l'arrivée */ },
+    onQuit: endTut,
+  });
   const view = new RaceView(wrap, engine, {
-    onQuit: finishTut,
-    onFinish: () => {}, // en tutoriel, pas de podium : on termine via le panneau
+    onQuit: endTut,
+    onFinish: () => endTut(), // franchir l'arrivée termine le tutoriel
     tutorial,
   });
   current.engine = engine; current.view = view; current.tutorial = tutorial;

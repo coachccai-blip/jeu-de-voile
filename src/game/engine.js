@@ -11,7 +11,7 @@ import { BotController } from './ai.js';
 import { getBank } from '../data/questionBank.js';
 import { currentAt } from './physics.js';
 import { TEAMS, PLAYER_TEAM_INDEX } from '../data/courses.js';
-import { clamp, dist, wrapAngle } from './mathutils.js';
+import { clamp, dist, wrapAngle, segmentsIntersect } from './mathutils.js';
 import { audio } from '../audio/audio.js';
 
 const PHASE = { PRESTART: 'prestart', RACING: 'racing', FINISHED: 'finished' };
@@ -228,8 +228,17 @@ export class RaceEngine {
     if (b.finished) return;
     const cp = this.checkpoints[b.nextMark];
     if (!cp) return;
-    const r = cp.finish ? BALANCE.race.buoyRadius * 3 : BALANCE.race.buoyRadius + BALANCE.boat.length * 0.4;
-    if (dist(b.x, b.y, cp.x, cp.y) < r) {
+    let reached;
+    if (cp.finish) {
+      // TOUTE la ligne d'arrivée compte : on détecte le franchissement du segment
+      // (trajectoire prev→cur qui coupe la ligne), n'importe où sur sa longueur.
+      const l = this.startLine;
+      reached = segmentsIntersect(b.prevX, b.prevY, b.x, b.y, l.ax, l.ay, l.bx, l.by)
+        || dist(b.x, b.y, cp.x, cp.y) < BALANCE.race.buoyRadius * 2.5; // filet de sécurité
+    } else {
+      reached = dist(b.x, b.y, cp.x, cp.y) < BALANCE.race.buoyRadius + BALANCE.boat.length * 0.4;
+    }
+    if (reached) {
       b.nextMark++;
       if (cp.finish) {
         b.finished = true;
@@ -504,15 +513,36 @@ export class RaceEngine {
     const l = this.startLine;
     const a = this.worldToScreen(l.ax, l.ay);
     const b = this.worldToScreen(l.bx, l.by);
+    // Ligne « active » comme arrivée quand toutes les bouées sont virées.
+    const finishing = this.player.nextMark === this.checkpoints.length - 1;
     ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    ctx.setLineDash([10, 8]);
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-    ctx.setLineDash([]);
-    // bouées de ligne
+    if (finishing) {
+      // Damier d'arrivée sur toute la longueur de la ligne.
+      const n = 16;
+      for (let i = 0; i < n; i++) {
+        const t0 = i / n, t1 = (i + 1) / n;
+        const x0 = a.x + (b.x - a.x) * t0, y0 = a.y + (b.y - a.y) * t0;
+        const x1 = a.x + (b.x - a.x) * t1, y1 = a.y + (b.y - a.y) * t1;
+        ctx.strokeStyle = i % 2 === 0 ? '#ffffff' : '#0b1b2a';
+        ctx.lineWidth = 7;
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      }
+      // étiquette ARRIVÉE
+      const mid = this.worldToScreen(l.x, l.y);
+      ctx.fillStyle = 'rgba(33,212,168,0.95)';
+      ctx.font = `bold ${Math.max(12, 16 * this.zoom + 8)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText('ARRIVÉE', mid.x, mid.y - 14);
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.setLineDash([10, 8]);
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    // bouées de ligne (extrémités)
     for (const p of [a, b]) {
-      ctx.fillStyle = '#ff5a3c';
+      ctx.fillStyle = finishing ? '#21d4a8' : '#ff5a3c';
       ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI * 2); ctx.fill();
     }
     ctx.restore();

@@ -120,6 +120,7 @@ export const STRINGS = {
     // Tutoriel
     tutTitle: 'Tutoriel',
     tutSkip: 'Passer le tutoriel',
+    tutQuit: '✕ Quitter le tutoriel',
     tutNext: 'Suivant →',
     tutStep1: 'Bienvenue ! Votre catamaran avance en permanence. La caméra le suit. Voici votre télémétrie : vitesse, position, prochaine bouée.',
     tutStep2: 'Appuyez sur « Manœuvrer » (ou Espace) pour ouvrir une question. Répondez vite : une bonne réponse rapide = gros boost !',

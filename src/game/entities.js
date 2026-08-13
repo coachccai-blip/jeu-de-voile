@@ -14,6 +14,8 @@ export class Boat {
     this.heading = start.angle;
     this.targetHeading = start.angle;
     this.waypoint = null;       // point du monde à atteindre précisément (manœuvre joueur)
+    this.prevX = start.x;       // position de la frame précédente (détection franchissement)
+    this.prevY = start.y;
     this.speed = BALANCE.boat.minSpeed;
     this.desiredSpeedMul = 1;   // intention de vitesse [0.6..1.2] fixée par la manœuvre
     this.boostAdd = 0;
@@ -60,6 +62,7 @@ export class Boat {
 
   update(dt, course) {
     const B = BALANCE.boat;
+    this.prevX = this.x; this.prevY = this.y; // pour la détection de franchissement de ligne
 
     // --- Navigation vers le point cliqué (passe précisément par ce pixel) ---
     if (this.waypoint) {

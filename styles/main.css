@@ -454,6 +454,11 @@ input[type=range]::-moz-range-thumb {
 /* ---------------- TUTORIEL ---------------- */
 .tutorial-layer { position: absolute; top: 150px; left: 50%; transform: translateX(-50%); z-index: 25; width: min(460px, 92vw); pointer-events: auto; }
 .tut-card { background: var(--panel-2); border: 1px solid var(--accent); border-radius: var(--r); padding: 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px; animation: fbIn .3s; }
+.tut-quit {
+  position: absolute; top: 14px; left: 14px; z-index: 26; pointer-events: auto;
+  padding: 8px 14px; min-height: 40px; font-size: 0.9rem;
+  background: rgba(6,26,44,0.85); border-color: var(--border);
+}
 .tut-text { line-height: 1.5; }
 .tut-btn { align-self: flex-end; }
 
