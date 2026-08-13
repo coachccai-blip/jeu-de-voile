@@ -1,0 +1,422 @@
+/**
+ * screens.js — Écrans HTML/CSS : menu, carte du monde, pré-course, podium,
+ * réglages, crédits, et contrôleur de tutoriel.
+ * Chaque fonction rend dans `ctx.root` et navigue via `ctx.go(name, params)`.
+ */
+import { t } from '../i18n/strings.js';
+import { audio } from '../audio/audio.js';
+import { COURSES, TEAMS, courseIndex } from '../data/courses.js';
+import { BALANCE, difficultyFromSlider } from '../config/balance.js';
+import {
+  getCourseProgress, getSettings, setSetting, resetSave, isTutorialSeen,
+} from '../save/save.js';
+
+function clear(root) { root.innerHTML = ''; }
+function fmtTime(ms) {
+  if (!ms || ms === Infinity) return t('mapNoTime');
+  const s = ms / 1000, m = Math.floor(s / 60);
+  return `${m}:${Math.floor(s % 60).toString().padStart(2, '0')}.${Math.floor((s % 1) * 10)}`;
+}
+function btnSfx(el) {
+  el.addEventListener('mouseenter', () => audio.sfx('uiHover'));
+  el.addEventListener('click', () => audio.sfx('uiClick'));
+}
+
+/** Un site est débloqué si c'est le 1er, ou si le précédent est gagné. */
+function isUnlocked(idx) {
+  if (idx === 0) return true;
+  return getCourseProgress(COURSES[idx - 1].id).won;
+}
+
+// ─────────────────────────────── MENU ───────────────────────────────
+export function renderMenu(ctx) {
+  clear(ctx.root);
+  audio.playMusic('menu');
+  const el = document.createElement('div');
+  el.className = 'screen menu-screen';
+  el.innerHTML = `
+    <canvas class="menu-bg"></canvas>
+    <div class="menu-content">
+      <h1 class="game-title">${t('gameTitle')}</h1>
+      <p class="game-sub">${t('gameSubtitle')}</p>
+      <nav class="menu-nav">
+        <button class="btn btn-primary big" data-go="campaign">⛵ ${t('menuCampaign')}</button>
+        <button class="btn" data-go="tutorial">🎓 ${t('menuTutorial')}</button>
+        <button class="btn" data-go="settings">⚙️ ${t('menuSettings')}</button>
+        <button class="btn btn-ghost" data-go="credits">${t('menuCredits')}</button>
+      </nav>
+      <p class="key-hint">${t('keyHint')}</p>
+    </div>
+  `;
+  ctx.root.appendChild(el);
+  startMenuBg(el.querySelector('.menu-bg'));
+  el.querySelectorAll('button[data-go]').forEach(b => {
+    btnSfx(b);
+    b.addEventListener('click', () => ctx.go(b.dataset.go));
+  });
+}
+
+function startMenuBg(canvas) {
+  const ctx = canvas.getContext('2d');
+  let raf, t0 = performance.now();
+  const boats = Array.from({ length: 5 }, (_, i) => ({
+    x: Math.random(), y: 0.3 + Math.random() * 0.5, spd: 0.02 + Math.random() * 0.03, c: TEAMS[i].color,
+  }));
+  function resize() {
+    canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  function frame(now) {
+    const dt = (now - t0) / 1000; t0 = now;
+    const w = canvas.width, h = canvas.height;
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#072c4a'); g.addColorStop(1, '#0b4a74');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(180,225,255,0.08)'; ctx.lineWidth = 2;
+    for (let i = 0; i < 8; i++) {
+      const y = (i / 8) * h + Math.sin(now / 1000 + i) * 6;
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 20) ctx.lineTo(x, y + Math.sin(x * 0.01 + now / 800 + i) * 8);
+      ctx.stroke();
+    }
+    for (const b of boats) {
+      b.x += b.spd * dt; if (b.x > 1.1) b.x = -0.1;
+      const px = b.x * w, py = b.y * h;
+      ctx.save(); ctx.translate(px, py);
+      ctx.fillStyle = 'rgba(220,245,255,0.25)';
+      ctx.beginPath(); ctx.ellipse(-14, 4, 20, 4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = b.c;
+      ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(-10, 5); ctx.lineTo(-10, -5); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.beginPath(); ctx.moveTo(2, -2); ctx.lineTo(-8, -18); ctx.lineTo(-10, -2); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+  canvas._stop = () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+}
+
+// ─────────────────────────── CARTE DU MONDE ───────────────────────────
+export function renderMap(ctx) {
+  clear(ctx.root);
+  audio.playMusic('menu');
+  const el = document.createElement('div');
+  el.className = 'screen map-screen';
+  el.innerHTML = `
+    <header class="screen-head">
+      <button class="btn btn-ghost" data-back>${t('mapBack')}</button>
+      <h2>${t('mapTitle')}</h2><div></div>
+    </header>
+    <div class="world-map">
+      <div class="ocean-grid"></div>
+      <div class="sites"></div>
+    </div>
+  `;
+  ctx.root.appendChild(el);
+  const sites = el.querySelector('.sites');
+  COURSES.forEach((c, idx) => {
+    const unlocked = isUnlocked(idx);
+    const prog = getCourseProgress(c.id);
+    const node = document.createElement('button');
+    node.className = `site ${unlocked ? 'unlocked' : 'locked'} ${prog.won ? 'won' : ''}`;
+    node.style.left = (c.mapPos.x * 100) + '%';
+    node.style.top = (c.mapPos.y * 100) + '%';
+    node.innerHTML = `
+      <span class="site-dot"></span>
+      <span class="site-card">
+        <strong>${c.name}</strong>
+        <em>${c.country}</em>
+        <span class="site-status">${prog.won ? '🏆 ' + t('mapWon') : unlocked ? t('mapAvailable') : '🔒 ' + t('mapLocked')}</span>
+        <span class="site-best">${t('mapBestTime')} : ${fmtTime(prog.bestTimes[0])}</span>
+      </span>`;
+    btnSfx(node);
+    node.addEventListener('click', () => {
+      if (!unlocked) { audio.sfx('wrong'); node.classList.add('shake'); setTimeout(() => node.classList.remove('shake'), 400); return; }
+      ctx.go('precourse', { courseId: c.id });
+    });
+    sites.appendChild(node);
+  });
+  el.querySelector('[data-back]').addEventListener('click', () => { audio.sfx('uiClick'); ctx.go('menu'); });
+}
+
+// ─────────────────────────── PRÉ-COURSE ───────────────────────────
+export function renderPreCourse(ctx, { courseId }) {
+  clear(ctx.root);
+  const course = COURSES.find(c => c.id === courseId);
+  const settings = getSettings();
+  let slider = settings.lastDifficulty ?? 0.25;
+  const el = document.createElement('div');
+  el.className = 'screen precourse-screen';
+  el.innerHTML = `
+    <header class="screen-head">
+      <button class="btn btn-ghost" data-back>${t('preRaceBack')}</button>
+      <h2>${course.name} · ${course.country}</h2><div></div>
+    </header>
+    <div class="precourse-body">
+      <div class="course-preview"><canvas class="preview-canvas"></canvas>
+        <p class="course-tag">${course.tagline}</p>
+      </div>
+      <div class="precourse-info">
+        <div class="info-row"><span>${t('preRaceBuoys')}</span><strong>${course.marks.length}</strong></div>
+        <div class="info-row"><span>${t('preRaceWind')}</span><strong>${Math.round(course.wind.strength * 20)} nds</strong></div>
+        <div class="info-row"><span>${t('preRaceCurrent')}</span><strong>${(course.currents || []).length} zone(s)</strong></div>
+        <div class="info-row rivals"><span>${t('preRaceRivals')}</span>
+          <span class="rival-dots">${TEAMS.slice(1).map(tm => `<i style="background:${tm.color}" title="${tm.name}"></i>`).join('')}</span>
+        </div>
+        <div class="difficulty">
+          <label>${t('preRaceDifficulty')} : <strong class="diff-label"></strong></label>
+          <input type="range" class="diff-slider" min="0" max="1" step="0.01" value="${slider}">
+          <div class="diff-scale"><span>${BALANCE.difficulty.levels[0].label}</span><span>${BALANCE.difficulty.levels[BALANCE.difficulty.levels.length - 1].label}</span></div>
+        </div>
+        <button class="btn btn-primary big start-btn">🚩 ${t('preRaceStart')}</button>
+      </div>
+    </div>
+  `;
+  ctx.root.appendChild(el);
+  drawCoursePreview(el.querySelector('.preview-canvas'), course);
+  const diffSlider = el.querySelector('.diff-slider');
+  const diffLabel = el.querySelector('.diff-label');
+  const upd = () => { diffLabel.textContent = difficultyFromSlider(parseFloat(diffSlider.value)).nearestLabel; };
+  upd();
+  diffSlider.addEventListener('input', () => { upd(); setSetting('lastDifficulty', parseFloat(diffSlider.value)); });
+  const startBtn = el.querySelector('.start-btn');
+  btnSfx(startBtn);
+  startBtn.addEventListener('click', () => ctx.go('race', { courseId, slider: parseFloat(diffSlider.value) }));
+  el.querySelector('[data-back]').addEventListener('click', () => { audio.sfx('uiClick'); ctx.go('campaign'); });
+}
+
+function drawCoursePreview(canvas, course) {
+  const ctx = canvas.getContext('2d');
+  const resize = () => { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; draw(); };
+  function draw() {
+    const w = canvas.width, h = canvas.height;
+    const pad = 26;
+    const sx = (w - pad * 2) / BALANCE.world.width, sy = (h - pad * 2) / BALANCE.world.height;
+    const s = Math.min(sx, sy);
+    const mp = (x, y) => ({ x: pad + x * s, y: pad + y * s });
+    ctx.fillStyle = '#0a3a5f'; ctx.fillRect(0, 0, w, h);
+    // courants
+    for (const c of course.currents || []) {
+      const p = mp(c.x, c.y);
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, c.r * s);
+      g.addColorStop(0, 'rgba(60,220,200,0.2)'); g.addColorStop(1, 'rgba(60,220,200,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, c.r * s, 0, Math.PI * 2); ctx.fill();
+    }
+    // tracé
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2; ctx.setLineDash([6, 5]);
+    ctx.beginPath();
+    const st = mp(course.start.x, course.start.y); ctx.moveTo(st.x, st.y);
+    course.marks.forEach(m => { const p = mp(m.x, m.y); ctx.lineTo(p.x, p.y); });
+    ctx.lineTo(st.x, st.y); ctx.stroke(); ctx.setLineDash([]);
+    // marks
+    course.marks.forEach((m, i) => {
+      const p = mp(m.x, m.y);
+      ctx.fillStyle = '#ff9f43'; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(i + 1, p.x, p.y - 8);
+    });
+    // départ
+    ctx.fillStyle = '#4dff88'; ctx.beginPath(); ctx.arc(st.x, st.y, 6, 0, Math.PI * 2); ctx.fill();
+    // vent
+    ctx.save(); ctx.translate(w - 34, 30); ctx.rotate(course.wind.dir);
+    ctx.strokeStyle = '#bfe6ff'; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(-12, 0); ctx.lineTo(12, 0); ctx.lineTo(6, -5); ctx.moveTo(12, 0); ctx.lineTo(6, 5); ctx.stroke();
+    ctx.restore();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  canvas._stop = () => window.removeEventListener('resize', resize);
+}
+
+// ─────────────────────────── PODIUM ───────────────────────────
+export function renderPodium(ctx, { results, won, courseId, slider, recordInfo, stats }) {
+  clear(ctx.root);
+  audio.playMusic('menu');
+  const idx = courseIndex(courseId);
+  const nextCourse = COURSES[idx + 1];
+  const nextUnlocked = nextCourse && isUnlocked(idx + 1);
+  const el = document.createElement('div');
+  el.className = 'screen podium-screen';
+  const acc = stats.questions ? Math.round(stats.correct / stats.questions * 100) : 0;
+  const bestReply = stats.bestReplyMs === Infinity ? '—' : (stats.bestReplyMs / 1000).toFixed(2) + ' s';
+  el.innerHTML = `
+    <div class="podium-hero ${won ? 'victory' : ''}">
+      <h1>${won ? '🏆 ' + t('podiumVictory') : t('podiumDefeat')}</h1>
+      ${recordInfo && recordInfo.isRecord ? `<div class="record-badge">⭐ ${t('podiumNewRecord')}</div>` : ''}
+    </div>
+    <div class="podium-cols">
+      <div class="podium-stand">
+        ${[1, 0, 2].map(pos => {
+          const r = results[pos]; if (!r) return '<div class="stand empty"></div>';
+          const place = pos + 1;
+          return `<div class="stand place-${place} ${r.isPlayer ? 'me' : ''}">
+            <div class="stand-boat" style="background:${r.color}"></div>
+            <div class="stand-name">${r.name}</div>
+            <div class="stand-block"><span class="medal">${place === 1 ? '🥇' : place === 2 ? '🥈' : '🥉'}</span>${place}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="podium-side">
+        <h3>${t('podiumRank')}</h3>
+        <ol class="rank-list">
+          ${results.map((r, i) => `<li class="${r.isPlayer ? 'me' : ''}"><span class="pos">${i + 1}</span><i style="background:${r.color}"></i><span class="nm">${r.name}</span><span class="tm">${fmtTime(r.time * 1000)}</span></li>`).join('')}
+        </ol>
+        <h3>${t('podiumStats')}</h3>
+        <div class="stats-grid">
+          <div><span>${t('podiumQuestions')}</span><strong>${stats.questions}</strong></div>
+          <div><span>${t('podiumAccuracy')}</span><strong>${acc}%</strong></div>
+          <div><span>${t('podiumBestReply')}</span><strong>${bestReply}</strong></div>
+          <div><span>${t('podiumTopSpeed')}</span><strong>${Math.round(stats.topSpeedKnots)} nds</strong></div>
+        </div>
+        <h3>${t('podiumBestTimes')}</h3>
+        <ol class="best-times">${(recordInfo.bestTimes || []).map(bt => `<li>${fmtTime(bt)}</li>`).join('') || '<li>—</li>'}</ol>
+      </div>
+    </div>
+    <div class="podium-actions">
+      <button class="btn" data-act="replay">↻ ${t('podiumReplay')}</button>
+      ${nextCourse && nextUnlocked ? `<button class="btn btn-primary" data-act="next">${t('podiumNext')} →</button>` : ''}
+      <button class="btn btn-ghost" data-act="map">${t('podiumMap')}</button>
+    </div>
+    ${won ? '<canvas class="confetti"></canvas>' : ''}
+  `;
+  ctx.root.appendChild(el);
+  if (won) confetti(el.querySelector('.confetti'));
+  el.querySelectorAll('button[data-act]').forEach(b => {
+    btnSfx(b);
+    b.addEventListener('click', () => {
+      const a = b.dataset.act;
+      if (a === 'replay') ctx.go('race', { courseId, slider });
+      else if (a === 'next') ctx.go('precourse', { courseId: nextCourse.id });
+      else ctx.go('campaign');
+    });
+  });
+}
+
+function confetti(canvas) {
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+  const cols = ['#ffd43b', '#ff6b6b', '#4dabf7', '#69db7c', '#f783ac', '#fff'];
+  const parts = Array.from({ length: 140 }, () => ({
+    x: Math.random() * canvas.width, y: -Math.random() * canvas.height,
+    vy: 60 + Math.random() * 120, vx: (Math.random() - 0.5) * 60,
+    s: 4 + Math.random() * 6, c: cols[Math.floor(Math.random() * cols.length)], r: Math.random() * Math.PI,
+  }));
+  let t0 = performance.now(), raf;
+  function frame(now) {
+    const dt = (now - t0) / 1000; t0 = now;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const p of parts) {
+      p.y += p.vy * dt; p.x += p.vx * dt; p.r += dt * 4;
+      if (p.y > canvas.height + 10) { p.y = -10; p.x = Math.random() * canvas.width; }
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6); ctx.restore();
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+  canvas._stop = () => cancelAnimationFrame(raf);
+}
+
+// ─────────────────────────── RÉGLAGES ───────────────────────────
+export function renderSettings(ctx) {
+  clear(ctx.root);
+  const s = getSettings();
+  const el = document.createElement('div');
+  el.className = 'screen settings-screen';
+  el.innerHTML = `
+    <header class="screen-head">
+      <button class="btn btn-ghost" data-back>${t('settingsBack')}</button>
+      <h2>${t('settingsTitle')}</h2><div></div>
+    </header>
+    <div class="settings-body">
+      <label class="slider-row"><span>🎵 ${t('settingsMusic')}</span>
+        <input type="range" min="0" max="1" step="0.02" value="${s.musicVolume}" class="music-vol"></label>
+      <label class="slider-row"><span>🔊 ${t('settingsSfx')}</span>
+        <input type="range" min="0" max="1" step="0.02" value="${s.sfxVolume}" class="sfx-vol"></label>
+      <button class="btn btn-danger reset-btn">🗑️ ${t('settingsReset')}</button>
+    </div>
+    <div class="modal-overlay hidden reset-modal">
+      <div class="modal-card">
+        <p>${t('settingsResetConfirm')}</p>
+        <div class="modal-actions">
+          <button class="btn btn-danger confirm-reset">${t('settingsResetYes')}</button>
+          <button class="btn btn-ghost cancel-reset">${t('settingsResetNo')}</button>
+        </div>
+      </div>
+    </div>
+  `;
+  ctx.root.appendChild(el);
+  const music = el.querySelector('.music-vol'), sfx = el.querySelector('.sfx-vol');
+  music.addEventListener('input', () => audio.setMusicVolume(parseFloat(music.value)));
+  sfx.addEventListener('input', () => audio.setSfxVolume(parseFloat(sfx.value)));
+  sfx.addEventListener('change', () => audio.sfx('uiClick'));
+  const modal = el.querySelector('.reset-modal');
+  el.querySelector('.reset-btn').addEventListener('click', () => { audio.sfx('uiClick'); modal.classList.remove('hidden'); });
+  el.querySelector('.cancel-reset').addEventListener('click', () => { audio.sfx('uiClick'); modal.classList.add('hidden'); });
+  el.querySelector('.confirm-reset').addEventListener('click', () => {
+    resetSave(); audio.sfx('unlock'); modal.classList.add('hidden');
+    music.value = getSettings().musicVolume; sfx.value = getSettings().sfxVolume;
+  });
+  el.querySelector('[data-back]').addEventListener('click', () => { audio.sfx('uiClick'); ctx.go('menu'); });
+}
+
+// ─────────────────────────── CRÉDITS ───────────────────────────
+export function renderCredits(ctx) {
+  clear(ctx.root);
+  const el = document.createElement('div');
+  el.className = 'screen credits-screen';
+  el.innerHTML = `
+    <header class="screen-head">
+      <button class="btn btn-ghost" data-back>${t('creditsBack')}</button>
+      <h2>${t('creditsTitle')}</h2><div></div>
+    </header>
+    <div class="credits-body"><pre>${t('creditsBody')}</pre></div>
+  `;
+  ctx.root.appendChild(el);
+  el.querySelector('[data-back]').addEventListener('click', () => { audio.sfx('uiClick'); ctx.go('menu'); });
+}
+
+// ─────────────────────────── TUTORIEL ───────────────────────────
+export function createTutorial(root, onDone) {
+  const steps = [
+    { key: 'tutStep1', advance: 'next' },
+    { key: 'tutStep2', advance: 'question' },
+    { key: 'tutStep3', advance: 'maneuver' },
+    { key: 'tutStep4', advance: 'next' },
+    { key: 'tutStep5', advance: 'buoy' },
+    { key: 'tutStep6', advance: 'finish-btn' },
+  ];
+  let i = 0;
+  const el = document.createElement('div');
+  el.className = 'tutorial-layer';
+  el.innerHTML = `<div class="tut-card"><p class="tut-text"></p><button class="btn btn-primary tut-btn"></button></div>`;
+  root.appendChild(el);
+  const textEl = el.querySelector('.tut-text');
+  const btn = el.querySelector('.tut-btn');
+
+  function show() {
+    const s = steps[i];
+    textEl.textContent = t(s.key);
+    btn.textContent = i === steps.length - 1 ? t('tutFinish') : (s.advance === 'next' || s.advance === 'finish-btn' ? t('tutNext') : '⏳ …');
+    btn.classList.toggle('hidden', !(s.advance === 'next' || s.advance === 'finish-btn'));
+    el.classList.remove('hidden');
+  }
+  function advance() {
+    i++;
+    if (i >= steps.length) { el.remove(); onDone && onDone(); return; }
+    show();
+  }
+  btn.addEventListener('click', () => { audio.sfx('uiClick'); advance(); });
+  show();
+
+  return {
+    notify(event) {
+      const s = steps[i];
+      if (!s) return;
+      if (s.advance === event) advance();
+    },
+    destroy() { el.remove(); },
+  };
+}

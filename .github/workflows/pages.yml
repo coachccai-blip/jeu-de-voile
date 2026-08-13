@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+# Déploie le jeu (site statique) sur GitHub Pages.
+# Fonctionne dès que Pages est activé avec « Source : GitHub Actions »
+# (Settings → Pages). Se déclenche sur la branche de développement et main.
+
+on:
+  push:
+    branches:
+      - main
+      - claude/game-github-pages-j06jy1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          # Active automatiquement GitHub Pages (source = Actions) si ce n'est pas déjà fait.
+          enablement: true
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Tout le dépôt est un site statique : on publie la racine.
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
