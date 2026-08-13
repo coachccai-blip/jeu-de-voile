@@ -391,7 +391,7 @@ input[type=range]::-moz-range-thumb {
 /* --- QCM Vrai/Faux (affirmations Leyton) --- */
 .qcm.vf { width: min(720px, 96vw); }
 .qcm.vf .qcm-prompt {
-  font-size: clamp(1rem, 2.4vw, 1.3rem); font-weight: 600; letter-spacing: 0;
+  font-size: clamp(1rem, 2.4vw, 1.3rem); font-weight: 400; letter-spacing: 0;
   font-variant-numeric: normal; text-align: center; line-height: 1.45;
   white-space: normal; max-height: 34vh; overflow-y: auto; margin-bottom: 14px;
 }
