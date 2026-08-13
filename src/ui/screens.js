@@ -7,6 +7,7 @@ import { t } from '../i18n/strings.js';
 import { audio } from '../audio/audio.js';
 import { COURSES, TEAMS, courseIndex } from '../data/courses.js';
 import { BALANCE, difficultyFromSlider } from '../config/balance.js';
+import { drawWorldMap } from './worldmap.js';
 import {
   getCourseProgress, getSettings, setSetting, resetSave, isTutorialSeen,
 } from '../save/save.js';
@@ -110,11 +111,12 @@ export function renderMap(ctx) {
       <h2>${t('mapTitle')}</h2><div></div>
     </header>
     <div class="world-map">
-      <div class="ocean-grid"></div>
+      <canvas class="world-canvas"></canvas>
       <div class="sites"></div>
     </div>
   `;
   ctx.root.appendChild(el);
+  startWorldCanvas(el.querySelector('.world-canvas'));
   const sites = el.querySelector('.sites');
   COURSES.forEach((c, idx) => {
     const unlocked = isUnlocked(idx);
@@ -139,6 +141,26 @@ export function renderMap(ctx) {
     sites.appendChild(node);
   });
   el.querySelector('[data-back]').addEventListener('click', () => { audio.sfx('uiClick'); ctx.go('menu'); });
+}
+
+function startWorldCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+  let raf, t0 = performance.now();
+  const resize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(canvas.clientWidth * dpr);
+    canvas.height = Math.floor(canvas.clientHeight * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  resize();
+  window.addEventListener('resize', resize);
+  function frame(now) {
+    const time = (now - t0) / 1000;
+    drawWorldMap(ctx, canvas.clientWidth, canvas.clientHeight, time);
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+  canvas._stop = () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
 }
 
 // ─────────────────────────── PRÉ-COURSE ───────────────────────────
@@ -296,27 +318,42 @@ export function renderPodium(ctx, { results, won, courseId, slider, recordInfo, 
 
 function confetti(canvas) {
   const ctx = canvas.getContext('2d');
-  canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
   const cols = ['#ffd43b', '#ff6b6b', '#4dabf7', '#69db7c', '#f783ac', '#fff'];
-  const parts = Array.from({ length: 140 }, () => ({
-    x: Math.random() * canvas.width, y: -Math.random() * canvas.height,
-    vy: 60 + Math.random() * 120, vx: (Math.random() - 0.5) * 60,
-    s: 4 + Math.random() * 6, c: cols[Math.floor(Math.random() * cols.length)], r: Math.random() * Math.PI,
-  }));
+  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // Densité proportionnelle à la surface de l'écran.
+  let parts = [];
+  const spawn = () => {
+    const count = Math.round(Math.max(90, (W * H) / 9000));
+    parts = Array.from({ length: count }, () => ({
+      x: Math.random() * W, y: -Math.random() * H,
+      vy: 60 + Math.random() * 140, vx: (Math.random() - 0.5) * 70,
+      s: 4 + Math.random() * 7, c: cols[Math.floor(Math.random() * cols.length)], r: Math.random() * Math.PI,
+    }));
+  };
+  const resize = () => {
+    // Plein écran : la fenêtre, pas la boîte parente (le canvas est position:fixed inset:0).
+    W = window.innerWidth; H = window.innerHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(W * dpr); canvas.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    spawn();
+  };
+  resize();
+  window.addEventListener('resize', resize);
   let t0 = performance.now(), raf;
   function frame(now) {
-    const dt = (now - t0) / 1000; t0 = now;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const dt = Math.min(0.05, (now - t0) / 1000); t0 = now;
+    ctx.clearRect(0, 0, W, H);
     for (const p of parts) {
       p.y += p.vy * dt; p.x += p.vx * dt; p.r += dt * 4;
-      if (p.y > canvas.height + 10) { p.y = -10; p.x = Math.random() * canvas.width; }
+      if (p.y > H + 10) { p.y = -10; p.x = Math.random() * W; }
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c;
       ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6); ctx.restore();
     }
     raf = requestAnimationFrame(frame);
   }
   raf = requestAnimationFrame(frame);
-  canvas._stop = () => cancelAnimationFrame(raf);
+  canvas._stop = () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
 }
 
 // ─────────────────────────── RÉGLAGES ───────────────────────────

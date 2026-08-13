@@ -34,9 +34,9 @@ export const BALANCE = {
 
   maneuver: {
     cooldown: 1.0,           // cooldown du bouton Manœuvrer (s)
-    // Ralenti « bullet-time » pendant la question (le monde tourne au ralenti pour
-    // laisser réfléchir). Retour à 1× dès que le joueur choisit son cap.
-    questionTimeScale: 0.5,
+    // Ralenti « bullet-time » pendant la question : quasi-arrêt du monde pour
+    // laisser réfléchir. Retour à 1× dès que le joueur choisit son cap.
+    questionTimeScale: 0.1,
   },
 
   splashdown: {

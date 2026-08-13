@@ -113,11 +113,11 @@ export class RaceView {
   _wire() {
     const cb = this.engine.callbacks;
     cb.onHud = (d) => this._updateHud(d);
-    cb.onQuestionShow = (q) => { this.qcm.show(q); if (this.tutorial) this.tutorial.notify('question'); };
+    cb.onQuestionShow = (q) => { this.qcm.show(q); this._enterSlowmo(); if (this.tutorial) this.tutorial.notify('question'); };
     cb.onQuestionTick = (rem, frac) => this.qcm.tick(rem, frac);
-    cb.onQuestionResult = (correct, idx, correctIdx, timedOut) => this.qcm.result(correct, idx, correctIdx);
+    cb.onQuestionResult = (correct, idx, correctIdx, timedOut) => { this.qcm.result(correct, idx, correctIdx); this._exitSlowmo(); };
     cb.onAimStart = () => { this.aimBanner.textContent = '👉 ' + t('hudManeuverHint'); this.aimBanner.classList.remove('hidden'); };
-    cb.onManeuverEnd = () => { this.aimBanner.classList.add('hidden'); if (this.tutorial) this.tutorial.notify('maneuver'); };
+    cb.onManeuverEnd = () => { this.aimBanner.classList.add('hidden'); this._exitSlowmo(); if (this.tutorial) this.tutorial.notify('maneuver'); };
     cb.onCountdown = (txt) => this._showCount(txt);
     cb.onFeedback = (kind) => this._feedback(kind);
     cb.onFinish = (results, won) => { this.onFinishCb && this.onFinishCb(results, won); };
@@ -142,6 +142,21 @@ export class RaceView {
     // vent (flèche pointant vers la direction du vent, relative — ici absolue)
     this.windArrow.style.transform = `rotate(${d.windDir}rad)`;
     this.foilFlag.classList.toggle('hidden', !d.foiling);
+  }
+
+  _enterSlowmo() {
+    // Grise la scène de jeu (canvas) et propage une onde grise depuis le bouton.
+    this.engine.canvas.classList.add('slowmo');
+    const r = this.mnvBtn.getBoundingClientRect();
+    const wave = document.createElement('div');
+    wave.className = 'slowmo-wave';
+    wave.style.left = (r.left + r.width / 2) + 'px';
+    wave.style.top = (r.top + r.height / 2) + 'px';
+    this.el.appendChild(wave);
+    setTimeout(() => wave.remove(), 850);
+  }
+  _exitSlowmo() {
+    this.engine.canvas.classList.remove('slowmo');
   }
 
   _showCount(txt) {

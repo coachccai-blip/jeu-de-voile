@@ -648,18 +648,26 @@ export class RaceEngine {
   _drawNextBuoyArrow(ctx) {
     const cp = this.checkpoints[this.player.nextMark];
     if (!cp) return;
-    const s = this.worldToScreen(cp.x, cp.y);
-    const margin = 60;
-    if (s.x > margin && s.x < this.viewW - margin && s.y > margin && s.y < this.viewH - margin) return;
-    // pointe sur le bord vers la bouée hors-champ
-    const cxs = this.viewW / 2, cys = this.viewH / 2;
-    const ang = Math.atan2(s.y - cys, s.x - cxs);
-    const rx = Math.min(this.viewW / 2 - 40, this.viewH / 2 - 40);
-    const ex = cxs + Math.cos(ang) * rx, ey = cys + Math.sin(ang) * rx;
+    // Indicateur TOUJOURS près du bateau (sur le cercle directionnel), pointant vers
+    // le prochain objectif : visible en permanence, sans être masqué par le HUD.
+    const s = this.worldToScreen(this.player.x, this.player.y);
+    const ang = Math.atan2(cp.y - this.player.y, cp.x - this.player.x);
+    const R = 66; // rayon du cercle directionnel autour du bateau (px écran)
+    const ex = s.x + Math.cos(ang) * R, ey = s.y + Math.sin(ang) * R;
     ctx.save();
+    // petit anneau de repère discret
+    ctx.strokeStyle = 'rgba(255,212,59,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(s.x, s.y, R, 0, Math.PI * 2); ctx.stroke();
+    // flèche vers l'objectif
     ctx.translate(ex, ey); ctx.rotate(ang);
-    ctx.fillStyle = 'rgba(255,212,59,0.95)';
-    ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-10, -10); ctx.lineTo(-10, 10); ctx.closePath(); ctx.fill();
+    const pulse = 0.85 + Math.sin(this.time * 5) * 0.15;
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#ffd43b';
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(-9, -9); ctx.lineTo(-4, 0); ctx.lineTo(-9, 9); ctx.closePath();
+    ctx.fill(); ctx.stroke();
     ctx.restore();
   }
 

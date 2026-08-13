@@ -100,16 +100,9 @@ body {
 .key-hint { margin-top: 26px; color: var(--text-dim); font-size: 0.8rem; opacity: 0.7; }
 
 /* ---------------- CARTE DU MONDE ---------------- */
-.map-screen { background: radial-gradient(circle at 50% 30%, var(--ocean-2), var(--ocean-0)); }
+.map-screen { background: var(--ocean-0); }
 .world-map { position: relative; flex: 1; overflow: hidden; }
-.ocean-grid {
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(120,200,255,0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(120,200,255,0.06) 1px, transparent 1px);
-  background-size: 60px 60px;
-  mask-image: radial-gradient(circle at 50% 45%, #000 55%, transparent 90%);
-}
+.world-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .sites { position: absolute; inset: 0; }
 .site {
   position: absolute; transform: translate(-50%, -50%);
@@ -174,7 +167,23 @@ input[type=range]::-moz-range-thumb {
 
 /* ---------------- STAGE DE COURSE ---------------- */
 .race-stage, .race-view { position: absolute; inset: 0; }
-.race-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.race-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; transition: filter .3s ease; }
+/* Ralenti : la scène de jeu se grise (le HUD/QCM restent colorés et lisibles). */
+.race-canvas.slowmo { filter: grayscale(0.9) brightness(0.62) contrast(0.95); }
+/* Onde grise qui traverse l'écran depuis le bouton Manœuvrer. */
+.slowmo-wave {
+  position: fixed; width: 44px; height: 44px; border-radius: 50%;
+  border: 3px solid rgba(190,200,210,0.55);
+  box-shadow: 0 0 40px rgba(190,200,210,0.35), inset 0 0 20px rgba(190,200,210,0.25);
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none; z-index: 11;
+  animation: slowmoWave .8s cubic-bezier(.2,.7,.3,1) forwards;
+}
+@keyframes slowmoWave {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.75; }
+  70%  { opacity: 0.35; }
+  100% { transform: translate(-50%, -50%) scale(70); opacity: 0; }
+}
 .race-view { pointer-events: none; }
 .race-view button, .race-view input { pointer-events: auto; }
 
