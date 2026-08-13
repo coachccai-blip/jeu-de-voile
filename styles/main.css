@@ -180,8 +180,9 @@ body {
 .site-num { color: var(--accent); margin-right: 2px; }
 .info-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .info-row strong { font-size: 1.15rem; color: var(--accent); }
-.rival-dots { display: flex; gap: 6px; }
+.rival-dots { display: flex; gap: 6px; align-items: center; }
 .rival-dots i { width: 18px; height: 18px; border-radius: 50%; display: inline-block; border: 2px solid rgba(255,255,255,0.5); }
+.rival-note { font-style: normal; font-size: 0.78rem; color: var(--text-dim); margin-left: 6px; }
 .difficulty { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
 .difficulty label { font-size: 1rem; }
 .diff-label { color: var(--accent); }

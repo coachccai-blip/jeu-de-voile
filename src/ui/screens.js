@@ -5,7 +5,7 @@
  */
 import { t } from '../i18n/strings.js';
 import { audio } from '../audio/audio.js';
-import { COURSES, TEAMS, courseIndex, geoToMap } from '../data/courses.js';
+import { COURSES, PLAYER, OPPONENT_POOL, pickOpponents, courseIndex, geoToMap } from '../data/courses.js';
 import { getChapter } from '../data/leyton.js';
 import { BALANCE, difficultyFromSlider, difficultyIndexFromSlider } from '../config/balance.js';
 import { drawWorldMap } from './worldmap.js';
@@ -104,8 +104,9 @@ export function renderMenu(ctx) {
 function startMenuBg(canvas) {
   const ctx = canvas.getContext('2d');
   let raf, t0 = performance.now();
+  const palette = [PLAYER, ...pickOpponents(4)];
   const boats = Array.from({ length: 5 }, (_, i) => ({
-    x: Math.random(), y: 0.3 + Math.random() * 0.5, spd: 0.02 + Math.random() * 0.03, c: TEAMS[i].color,
+    x: Math.random(), y: 0.3 + Math.random() * 0.5, spd: 0.02 + Math.random() * 0.03, c: palette[i].color,
   }));
   function resize() {
     canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
@@ -337,7 +338,7 @@ export function renderPreCourse(ctx, { courseId }) {
         <div class="info-row"><span>${t('preRaceBuoys')}</span><strong>${course.marks.length}</strong></div>
         <div class="info-row"><span>${t('preRaceWind')}</span><strong>${Math.round(course.wind.strength * 20)} nds</strong></div>
         <div class="info-row rivals"><span>${t('preRaceRivals')}</span>
-          <span class="rival-dots">${TEAMS.slice(1).map(tm => `<i style="background:${tm.color}" title="${tm.name}"></i>`).join('')}</span>
+          <span class="rival-dots">${pickOpponents(4).map(tm => `<i style="background:${tm.color}" title="${tm.name}"></i>`).join('')}<em class="rival-note">4 au hasard</em></span>
         </div>
         <div class="difficulty">
           <label>${t('preRaceDifficulty')} : <strong class="diff-label"></strong></label>

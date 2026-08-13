@@ -9,16 +9,46 @@
  */
 
 // Couleurs pastel, lisibles sur l'océan sombre. Le joueur est en bleu pastel.
-export const TEAMS = [
-  { id: 'joueur', name: 'Vous',   color: '#8FB6F2', sail: '#ffffff' }, // bleu pastel (joueur)
-  { id: 'david',  name: 'David',  color: '#9FE3B4', sail: '#ffffff' }, // vert menthe pastel
-  { id: 'pierre', name: 'Pierre', color: '#F6B482', sail: '#ffffff' }, // pêche pastel
-  { id: 'agnes',  name: 'Agnès',  color: '#F2A9C4', sail: '#ffffff' }, // rose pastel
-  { id: 'sabra',  name: 'Sabra',  color: '#C7A9EC', sail: '#ffffff' }, // lavande pastel
+export const PLAYER = { id: 'joueur', name: 'Vous', color: '#8FB6F2', sail: '#ffffff' };
+
+// Vivier d'adversaires : chaque course tire 4 concurrents AU HASARD dans ce pool.
+export const OPPONENT_POOL = [
+  { name: 'David',         color: '#9FE3B4', sail: '#ffffff' },
+  { name: 'Agnès',         color: '#F2A9C4', sail: '#ffffff' },
+  { name: 'Pierre',        color: '#F6B482', sail: '#ffffff' },
+  { name: 'Sabra',         color: '#C7A9EC', sail: '#ffffff' },
+  { name: 'Benoit',        color: '#A9D8F2', sail: '#ffffff' },
+  { name: 'Cécilia',       color: '#F2D6A9', sail: '#ffffff' },
+  { name: 'Linda',         color: '#E6A0A0', sail: '#ffffff' },
+  { name: 'Clément',       color: '#8FE0D2', sail: '#ffffff' },
+  { name: 'Thibault',      color: '#B7C0F2', sail: '#ffffff' },
+  { name: 'Julie',         color: '#F2A0DE', sail: '#ffffff' },
+  { name: 'Aina',          color: '#CDE89A', sail: '#ffffff' },
+  { name: 'Pierre-Adrien', color: '#E0C4A0', sail: '#ffffff' },
+  { name: 'Mariana',       color: '#A0DFE6', sail: '#ffffff' },
+  { name: 'Hakim',         color: '#D2A6F0', sail: '#ffffff' },
+  { name: 'Graziella',     color: '#F5C0DA', sail: '#ffffff' },
+  { name: 'Damien',        color: '#A6E0B0', sail: '#ffffff' },
+  { name: 'Fairrouz',      color: '#EAD79A', sail: '#ffffff' },
 ];
 
-// Le joueur est toujours l'équipe index 0 ; les bots prennent les suivantes.
+// Le joueur est toujours l'équipe index 0 ; les adversaires suivent.
 export const PLAYER_TEAM_INDEX = 0;
+
+/** Tire `n` adversaires distincts au hasard dans le vivier. */
+export function pickOpponents(n = 4) {
+  const pool = OPPONENT_POOL.slice();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, Math.min(n, pool.length));
+}
+
+/** Grille de départ complète = joueur + n adversaires aléatoires. */
+export function buildGrid(n = 4) {
+  return [PLAYER, ...pickOpponents(n)];
+}
 
 function deg(d) { return d * Math.PI / 180; }
 
@@ -32,7 +62,7 @@ export const COURSES = [
     country: 'France',
     chapter: 'cir',
     tagline: 'Baie technique, brise thermique tournante.',
-    intro: 'Saint-Tropez ! Rosé, paillettes et près serré… Cap sur le CIR, le produit historique de Leyton. Prêt à démêler le vrai du faux ? 🥂',
+    intro: 'Bienvenue à Saint-Tropez. Première étape : le Crédit d\'Impôt Recherche, le produit historique de Leyton. Distinguez le vrai du faux pour gagner en aisance sur ce sujet clé du cross-selling.',
     geo: { lat: 43.27, lon: 6.64 },
     wind: { dir: deg(90), strength: 1.0 }, // vent vers le sud
     start: { x: 2100, y: 2500, angle: deg(-90) }, // les bateaux visent le nord au départ
@@ -53,7 +83,7 @@ export const COURSES = [
     country: 'France',
     chapter: 'ipbox',
     tagline: 'Mistral musclé : la stratégie prime.',
-    intro: 'Marseille ! Le mistral pousse fort, comme la fiscalité de la PI. Peuchère, à vous l\'IP Box — vrai ou faux ? ⚓',
+    intro: 'Direction Marseille pour l\'IP Box, la fiscalité de la propriété intellectuelle. Validez chaque affirmation : bien maîtriser ce produit ouvre de belles opportunités clients.',
     geo: { lat: 43.30, lon: 5.37 },
     wind: { dir: deg(115), strength: 1.2 },
     start: { x: 2100, y: 2600, angle: deg(-115) },
@@ -76,7 +106,7 @@ export const COURSES = [
     country: 'Espagne',
     chapter: 'aides',
     tagline: 'Levante capricieux : cap sur les subventions.',
-    intro: 'Cadix ! Entre deux vents d\'Andalousie, on chasse les aides et subventions — nationales, régionales, européennes. ¡Vamos ! 🌊',
+    intro: 'Escale à Cadix, autour des aides et subventions — nationales, régionales et européennes. Testez vos réflexes : savoir orienter un client sur ces dispositifs fait la différence.',
     geo: { lat: 36.53, lon: -6.29 },
     wind: { dir: deg(80), strength: 1.05 },
     start: { x: 2000, y: 2550, angle: deg(-95) },
@@ -98,7 +128,7 @@ export const COURSES = [
     country: 'Australie',
     chapter: 'bpo',
     tagline: 'Vent fort et houle : gros portants.',
-    intro: 'Sydney ! Ça souffle à décoiffer un koala. On externalise la gestion de l\'absence — le BPO et les IJSS, vrai ou faux ? 🦘',
+    intro: 'Étape de Sydney, consacrée au BPO : recouvrement des IJSS et gestion externalisée de l\'absence. Chaque bonne réponse affine votre discours sur ce produit.',
     geo: { lat: -33.86, lon: 151.21 },
     wind: { dir: deg(45), strength: 1.15 },
     start: { x: 1000, y: 2400, angle: deg(-45) },
@@ -118,7 +148,7 @@ export const COURSES = [
     country: 'Émirats',
     chapter: 'payroll',
     tagline: 'Plan d\'eau plat, vent stable, sprint pur.',
-    intro: 'Dubaï ! Mer plate, chrono à fond : on optimise les charges sociales — Payroll, réduction Fillon/RGDU. À vos réponses ! 💰',
+    intro: 'Bienvenue à Dubaï pour le Payroll : optimisation des charges sociales et dispositifs d\'exonération (réduction Fillon / RGDU). Prouvez votre maîtrise, affirmation après affirmation.',
     geo: { lat: 25.20, lon: 55.27 },
     wind: { dir: deg(100), strength: 0.95 },
     start: { x: 2100, y: 2500, angle: deg(-90) },
@@ -139,7 +169,7 @@ export const COURSES = [
     country: 'États-Unis',
     chapter: 'taxes-locales',
     tagline: 'Courants de baie puissants sous le pont.',
-    intro: 'San Francisco ! Le courant tire fort, comme la fiscalité locale — TLPE, TFPB, CFE, CVAE… Vrai ou faux, moussaillon ? 🌉',
+    intro: 'Cap sur San Francisco et les taxes locales — TLPE, TFPB, CFE, CVAE. Un terrain technique : distinguez le vrai du faux pour rassurer vos prospects.',
     geo: { lat: 37.77, lon: -122.42 },
     wind: { dir: deg(75), strength: 1.05 },
     start: { x: 2100, y: 2600, angle: deg(-100) },
@@ -161,7 +191,7 @@ export const COURSES = [
     country: 'Nouvelle-Zélande',
     chapter: 'taxes-nationales',
     tagline: 'Bascules de vent : la stratégie prime.',
-    intro: 'Auckland ! Le vent change d\'avis plus souvent qu\'un contrôleur — C3S, TVA, taxes sectorielles. Restez malins ! 🐑',
+    intro: 'Étape d\'Auckland, dédiée aux taxes nationales : C3S, TVA et taxes sectorielles. Affûtez vos connaissances et prenez l\'avantage sur ce produit.',
     geo: { lat: -36.85, lon: 174.76 },
     wind: { dir: deg(60), strength: 1.1 },
     start: { x: 1200, y: 2500, angle: deg(-60) },
@@ -183,7 +213,7 @@ export const COURSES = [
     country: 'Singapour',
     chapter: 'energie',
     tagline: 'Grande finale : brise tropicale et enjeux énergie.',
-    intro: 'Singapour, la grande finale ! Cap sur la fiscalité de l\'énergie et les accises. Un dernier vrai/faux pour le titre ! ⚡',
+    intro: 'Grande finale à Singapour, sur la fiscalité de l\'énergie et les accises. Un dernier vrai/faux pour couronner votre parcours d\'expert des produits Leyton.',
     geo: { lat: 1.29, lon: 103.85 },
     wind: { dir: deg(70), strength: 1.1 },
     start: { x: 2100, y: 2600, angle: deg(-100) },

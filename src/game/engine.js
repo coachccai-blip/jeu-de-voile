@@ -10,7 +10,7 @@ import { Boat } from './entities.js';
 import { BotController } from './ai.js';
 import { getBank } from '../data/questionBank.js';
 import { currentAt } from './physics.js';
-import { TEAMS, PLAYER_TEAM_INDEX } from '../data/courses.js';
+import { buildGrid, PLAYER_TEAM_INDEX } from '../data/courses.js';
 import { clamp, dist, wrapAngle, segmentsIntersect } from './mathutils.js';
 import { audio } from '../audio/audio.js';
 
@@ -90,16 +90,17 @@ export class RaceEngine {
     const back = Math.cos(s.angle + Math.PI), backY = Math.sin(s.angle + Math.PI);
     this.boats = [];
     this.bots = [];
-    // Répartir les 5 bateaux le long de la ligne, derrière elle
-    for (let i = 0; i < TEAMS.length; i++) {
-      const off = (i - (TEAMS.length - 1) / 2) * 90;
+    // Grille = joueur + 4 adversaires tirés au hasard dans le vivier.
+    const grid = buildGrid(4);
+    for (let i = 0; i < grid.length; i++) {
+      const off = (i - (grid.length - 1) / 2) * 90;
       const start = {
         x: s.x + px * off + back * 70,
         y: s.y + py * off + backY * 70,
         angle: s.angle,
       };
       const isPlayer = i === PLAYER_TEAM_INDEX;
-      const boat = new Boat(TEAMS[i], isPlayer, start);
+      const boat = new Boat(grid[i], isPlayer, start);
       this.boats.push(boat);
       if (isPlayer) this.player = boat;
       else this.bots.push(new BotController(boat, this.difficulty));
