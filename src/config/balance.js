@@ -81,16 +81,17 @@ export const BALANCE = {
 
   difficulty: {
     // 5 crans, du plus facile au plus extrême. Interpolation continue entre crans.
-    // Le LEVIER PRINCIPAL de la difficulté = les QUESTIONS (taille des nombres,
-    // retenues, temps de réponse). Les bots ne deviennent PAS parfaits en extrême :
-    // botSkill est plafonné pour que la course reste gagnable en répondant bien.
-    // timeLimit = temps RÉEL (s) pour répondre. Plafond : 6 s (très facile).
+    // La difficulté ne change QUE la vitesse des adversaires (botSkill/botSpeed).
+    // Les QUESTIONS restent volontairement faciles dans tous les modes : la
+    // difficulté des questions viendra plus tard d'une banque personnalisée
+    // (système vrai/faux). maxOperand/carry/timeLimit sont donc CONSTANTS.
+    // timeLimit = temps RÉEL (s) pour répondre (≤ 6 s).
     levels: [
-      { key: 'tresFacile', label: 'Très facile', maxOperand: 8,   carry: false, timeLimit: 6.0, botSkill: 0.28, botSpeed: 2.9 },
-      { key: 'facile',     label: 'Facile',      maxOperand: 20,  carry: false, timeLimit: 5.4, botSkill: 0.40, botSpeed: 2.5 },
-      { key: 'moyen',      label: 'Moyen',       maxOperand: 50,  carry: true,  timeLimit: 4.8, botSkill: 0.52, botSpeed: 2.1 },
-      { key: 'difficile',  label: 'Difficile',   maxOperand: 99,  carry: true,  timeLimit: 4.2, botSkill: 0.62, botSpeed: 1.8 },
-      { key: 'extreme',    label: 'Extrême',     maxOperand: 200, carry: true,  timeLimit: 3.5, botSkill: 0.72, botSpeed: 1.6 },
+      { key: 'tresFacile', label: 'Très facile', maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.30, botSpeed: 3.0 },
+      { key: 'facile',     label: 'Facile',      maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.45, botSpeed: 2.5 },
+      { key: 'moyen',      label: 'Moyen',       maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.60, botSpeed: 2.0 },
+      { key: 'difficile',  label: 'Difficile',   maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.75, botSpeed: 1.6 },
+      { key: 'extreme',    label: 'Extrême',     maxOperand: 10, carry: false, timeLimit: 6.0, botSkill: 0.92, botSpeed: 1.3 },
     ],
     defaultIndex: 1,
   },
