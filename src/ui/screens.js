@@ -6,8 +6,17 @@
 import { t } from '../i18n/strings.js';
 import { audio } from '../audio/audio.js';
 import { COURSES, TEAMS, courseIndex, geoToMap } from '../data/courses.js';
-import { BALANCE, difficultyFromSlider } from '../config/balance.js';
+import { BALANCE, difficultyFromSlider, difficultyIndexFromSlider } from '../config/balance.js';
 import { drawWorldMap } from './worldmap.js';
+
+/** Rangée de 5 trophées (un par difficulté). `current`/`earnedNow` = index à mettre en avant. */
+function trophiesHTML(trophies, { current = -1, earnedNow = -1 } = {}) {
+  return `<span class="trophies">` + BALANCE.difficulty.levels.map((lv, i) => {
+    const got = trophies && trophies[i];
+    const cls = ['trophy', got ? 'got' : 'empty', i === current ? 'current' : '', i === earnedNow ? 'earned-now' : ''].join(' ').trim();
+    return `<span class="${cls}" title="${lv.label}">${got ? '🏆' : '○'}</span>`;
+  }).join('') + `</span>`;
+}
 import {
   getCourseProgress, getSettings, setSetting, resetSave, isTutorialSeen,
 } from '../save/save.js';
@@ -127,12 +136,16 @@ export function renderMap(ctx) {
     node.className = `site ${unlocked ? 'unlocked' : 'locked'} ${prog.won ? 'won' : ''}`;
     node.style.left = (pos.x * 100) + '%';
     node.style.top = (pos.y * 100) + '%';
+    const tcount = prog.trophies.filter(Boolean).length;
     node.innerHTML = `
-      <span class="site-dot"></span>
+      <span class="site-dot">${tcount > 0 ? `<span class="site-count">${tcount}</span>` : ''}</span>
+      <span class="site-name-tag">${c.name}</span>
       <span class="site-card">
         <strong>${c.name}</strong>
         <em>${c.country}</em>
         <span class="site-status">${prog.won ? '🏆 ' + t('mapWon') : unlocked ? t('mapAvailable') : '🔒 ' + t('mapLocked')}</span>
+        <span class="site-trophies-label">${t('mapTrophies')} ${prog.trophies.filter(Boolean).length}/5</span>
+        ${trophiesHTML(prog.trophies)}
         <span class="site-best">${t('mapBestTime')} : ${fmtTime(prog.bestTimes[0])}</span>
       </span>`;
     btnSfx(node);
@@ -201,7 +214,11 @@ export function renderPreCourse(ctx, { courseId }) {
   clear(ctx.root);
   const course = COURSES.find(c => c.id === courseId);
   const settings = getSettings();
-  let slider = settings.lastDifficulty ?? 0.25;
+  const prog = getCourseProgress(courseId);
+  const nLevels = BALANCE.difficulty.levels.length;
+  const step = 1 / (nLevels - 1);
+  // Difficulté discrète (5 crans) : on aligne la valeur initiale sur un cran.
+  let slider = difficultyIndexFromSlider(settings.lastDifficulty ?? 0.25) * step;
   const el = document.createElement('div');
   el.className = 'screen precourse-screen';
   el.innerHTML = `
@@ -222,8 +239,12 @@ export function renderPreCourse(ctx, { courseId }) {
         </div>
         <div class="difficulty">
           <label>${t('preRaceDifficulty')} : <strong class="diff-label"></strong></label>
-          <input type="range" class="diff-slider" min="0" max="1" step="0.01" value="${slider}">
-          <div class="diff-scale"><span>${BALANCE.difficulty.levels[0].label}</span><span>${BALANCE.difficulty.levels[BALANCE.difficulty.levels.length - 1].label}</span></div>
+          <input type="range" class="diff-slider" min="0" max="1" step="${step}" value="${slider}">
+          <div class="diff-scale">${BALANCE.difficulty.levels.map(l => `<span>${l.label}</span>`).join('')}</div>
+        </div>
+        <div class="precourse-trophies">
+          <span class="pt-label">${t('mapTrophies')} : <strong class="pt-count">${prog.trophies.filter(Boolean).length}</strong>/5</span>
+          <span class="pt-row"></span>
         </div>
         <button class="btn btn-primary big start-btn">🚩 ${t('preRaceStart')}</button>
       </div>
@@ -233,7 +254,14 @@ export function renderPreCourse(ctx, { courseId }) {
   drawCoursePreview(el.querySelector('.preview-canvas'), course);
   const diffSlider = el.querySelector('.diff-slider');
   const diffLabel = el.querySelector('.diff-label');
-  const upd = () => { diffLabel.textContent = difficultyFromSlider(parseFloat(diffSlider.value)).nearestLabel; };
+  const ptRow = el.querySelector('.pt-row');
+  const upd = () => {
+    const v = parseFloat(diffSlider.value);
+    const idx = difficultyIndexFromSlider(v);
+    diffLabel.textContent = BALANCE.difficulty.levels[idx].label;
+    // Met en avant le trophée de la difficulté sélectionnée.
+    ptRow.innerHTML = trophiesHTML(prog.trophies, { current: idx });
+  };
   upd();
   diffSlider.addEventListener('input', () => { upd(); setSetting('lastDifficulty', parseFloat(diffSlider.value)); });
   const startBtn = el.querySelector('.start-btn');
@@ -286,7 +314,7 @@ function drawCoursePreview(canvas, course) {
 }
 
 // ─────────────────────────── PODIUM ───────────────────────────
-export function renderPodium(ctx, { results, won, courseId, slider, recordInfo, stats }) {
+export function renderPodium(ctx, { results, won, courseId, slider, diffIndex, recordInfo, stats }) {
   clear(ctx.root);
   audio.playMusic('menu');
   const idx = courseIndex(courseId);
@@ -299,7 +327,14 @@ export function renderPodium(ctx, { results, won, courseId, slider, recordInfo, 
   el.innerHTML = `
     <div class="podium-hero ${won ? 'victory' : ''}">
       <h1>${won ? '🏆 ' + t('podiumVictory') : t('podiumDefeat')}</h1>
-      ${recordInfo && recordInfo.isRecord ? `<div class="record-badge">⭐ ${t('podiumNewRecord')}</div>` : ''}
+      <div class="hero-badges">
+        ${recordInfo && recordInfo.newTrophy ? `<div class="record-badge trophy-badge">🏆 ${t('podiumNewTrophy')} · ${BALANCE.difficulty.levels[diffIndex].label}</div>` : ''}
+        ${recordInfo && recordInfo.isRecord ? `<div class="record-badge">⭐ ${t('podiumNewRecord')}</div>` : ''}
+      </div>
+      <div class="podium-trophies">
+        <span class="pt-label">${t('podiumTrophies')} : <strong>${(recordInfo.trophies || []).filter(Boolean).length}</strong>/5</span>
+        ${trophiesHTML(recordInfo.trophies, { earnedNow: recordInfo.newTrophy ? diffIndex : -1 })}
+      </div>
     </div>
     <div class="podium-cols">
       <div class="podium-stand">

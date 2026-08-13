@@ -35,8 +35,11 @@ export const BALANCE = {
   maneuver: {
     cooldown: 1.0,           // cooldown du bouton Manœuvrer (s)
     // Ralenti « bullet-time » pendant la question : quasi-arrêt du monde pour
-    // laisser réfléchir. Retour à 1× dès que le joueur choisit son cap.
+    // laisser réfléchir.
     questionTimeScale: 0.1,
+    // Après la réponse, le ralenti est maintenu ce délai (s, temps réel) avant
+    // que le jeu ne reparte à vitesse normale.
+    resumeDelay: 1.0,
   },
 
   splashdown: {
@@ -93,6 +96,12 @@ export const BALANCE = {
     sfxVolume: 0.7,
   },
 };
+
+/** Index de difficulté discret (0..4) le plus proche pour un curseur [0..1]. */
+export function difficultyIndexFromSlider(t) {
+  const n = BALANCE.difficulty.levels.length - 1;
+  return Math.max(0, Math.min(n, Math.round(Math.max(0, Math.min(1, t)) * n)));
+}
 
 /** Interpole les paramètres de difficulté à partir d'un curseur continu [0..1]. */
 export function difficultyFromSlider(t) {

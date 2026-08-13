@@ -23,6 +23,7 @@ export const STRINGS = {
     mapBestTime: 'Meilleur temps',
     mapNoTime: '—',
     mapUnlockHint: 'Gagnez la course précédente pour débloquer.',
+    mapTrophies: 'Trophées',
 
     // Pré-course
     preRaceStart: 'Prendre le départ',
@@ -64,6 +65,8 @@ export const STRINGS = {
     podiumVictory: 'VICTOIRE !',
     podiumDefeat: 'Course terminée',
     podiumNewRecord: 'Nouveau record !',
+    podiumNewTrophy: 'Nouveau trophée !',
+    podiumTrophies: 'Trophées du parcours',
     podiumRank: 'Classement',
     podiumTime: 'Temps',
     podiumStats: 'Statistiques',
@@ -100,6 +103,7 @@ export const STRINGS = {
     keyHint: 'Astuce : touches 1-4 pour répondre, Espace pour manœuvrer.',
     pause: 'Pause',
     resume: 'Reprendre',
+    restart: 'Recommencer',
     quitRace: 'Quitter la course',
 
     // Tutoriel

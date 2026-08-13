@@ -9,6 +9,7 @@ import {
   renderSettings, renderCredits, createTutorial,
 } from './ui/screens.js';
 import { COURSES } from './data/courses.js';
+import { difficultyIndexFromSlider } from './config/balance.js';
 import { recordResult, getCourseProgress, isTutorialSeen, setTutorialSeen } from './save/save.js';
 
 const app = document.getElementById('app');
@@ -73,6 +74,7 @@ function startRace({ courseId, slider }) {
   const engine = new RaceEngine(canvas, course, slider);
   const view = new RaceView(wrap, engine, {
     onQuit: () => go('campaign'),
+    onRestart: () => go('race', { courseId, slider }),
     onFinish: (results, won) => finishRace(course, slider, results, won, engine),
   });
   current.engine = engine; current.view = view;
@@ -83,14 +85,15 @@ function startRace({ courseId, slider }) {
 function finishRace(course, slider, results, won, engine) {
   const timeMs = engine.player.finishTime * 1000;
   const wasWon = getCourseProgress(course.id).won;
-  const recordInfo = recordResult(course.id, won, timeMs);
+  const diffIndex = difficultyIndexFromSlider(slider);
+  const recordInfo = recordResult(course.id, won, timeMs, diffIndex);
   // Débloquer la course suivante si victoire
   if (won && !wasWon) {
     setTimeout(() => audio.sfx('unlock'), 400);
   }
   const stats = { ...engine.stats };
   cleanupRace();
-  go('podium', { results, won, courseId: course.id, slider, recordInfo, stats });
+  go('podium', { results, won, courseId: course.id, slider, diffIndex, recordInfo, stats });
 }
 
 function startTutorial({ fromCampaign } = {}) {

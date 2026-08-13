@@ -9,11 +9,12 @@ import { QCM } from './qcm.js';
 import { BALANCE } from '../config/balance.js';
 
 export class RaceView {
-  constructor(root, engine, { onQuit, onFinish, tutorial } = {}) {
+  constructor(root, engine, { onQuit, onFinish, onRestart, tutorial } = {}) {
     this.root = root;
     this.engine = engine;
     this.onQuit = onQuit;
     this.onFinishCb = onFinish;
+    this.onRestart = onRestart;
     this.tutorial = tutorial;
     this._build();
     this._wire();
@@ -55,6 +56,7 @@ export class RaceView {
         <div class="pause-card">
           <h2>${t('pause')}</h2>
           <button class="btn btn-primary resume-btn">${t('resume')}</button>
+          <button class="btn restart-btn">↻ ${t('restart')}</button>
           <button class="btn btn-ghost quit-btn">${t('quitRace')}</button>
         </div>
       </div>
@@ -95,7 +97,9 @@ export class RaceView {
     });
     this.$('.hud-pause').addEventListener('click', () => this._togglePause());
     this.$('.resume-btn').addEventListener('click', () => this._togglePause());
-    this.$('.quit-btn').addEventListener('click', () => { this.destroy(); this.onQuit && this.onQuit(); });
+    if (!this.onRestart) this.$('.restart-btn').classList.add('hidden');
+    this.$('.restart-btn').addEventListener('click', () => { audio.sfx('uiClick'); this.destroy(); this.onRestart && this.onRestart(); });
+    this.$('.quit-btn').addEventListener('click', () => { audio.sfx('uiClick'); this.destroy(); this.onQuit && this.onQuit(); });
 
     window.addEventListener('resize', this._resize = () => this.engine.resize());
   }
@@ -115,9 +119,11 @@ export class RaceView {
     cb.onHud = (d) => this._updateHud(d);
     cb.onQuestionShow = (q) => { this.qcm.show(q); this._enterSlowmo(); if (this.tutorial) this.tutorial.notify('question'); };
     cb.onQuestionTick = (rem, frac) => this.qcm.tick(rem, frac);
-    cb.onQuestionResult = (correct, idx, correctIdx, timedOut) => { this.qcm.result(correct, idx, correctIdx); this._exitSlowmo(); };
+    cb.onQuestionResult = (correct, idx, correctIdx, timedOut) => { this.qcm.result(correct, idx, correctIdx); };
     cb.onAimStart = () => { this.aimBanner.textContent = '👉 ' + t('hudManeuverHint'); this.aimBanner.classList.remove('hidden'); };
-    cb.onManeuverEnd = () => { this.aimBanner.classList.add('hidden'); this._exitSlowmo(); if (this.tutorial) this.tutorial.notify('maneuver'); };
+    cb.onManeuverEnd = () => { this.aimBanner.classList.add('hidden'); if (this.tutorial) this.tutorial.notify('maneuver'); };
+    // Le ralenti (grisé) reste actif 1 s après la réponse, puis se lève ici.
+    cb.onSlowmoEnd = () => this._exitSlowmo();
     cb.onCountdown = (txt) => this._showCount(txt);
     cb.onFeedback = (kind) => this._feedback(kind);
     cb.onFinish = (results, won) => { this.onFinishCb && this.onFinishCb(results, won); };

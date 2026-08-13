@@ -37,6 +37,7 @@ export class RaceEngine {
     this.pendingBoost = null;
     this.currentQuestion = null;
     this.qStartClock = 0;
+    this.slowmoHold = 0; // secondes (temps réel) de ralenti maintenu APRÈS la réponse
 
     this.aimPreview = null; // {heading, mul}
     this.time = 0;
@@ -157,9 +158,13 @@ export class RaceEngine {
     }
 
     if (this.phase === PHASE.RACING) {
-      // Ralenti « bullet-time » : le monde tourne au ralenti PENDANT la question,
-      // et repasse à 1× dès que le joueur choisit son cap (phase AIMING).
+      // Ralenti « bullet-time » : au ralenti pendant la question, MAINTENU 1 s
+      // après la réponse, puis retour progressif à la vitesse normale.
       const sdt = dt * this.timeScale;
+      if (this.slowmoHold > 0) {
+        this.slowmoHold -= dt; // décrémente en temps réel
+        if (this.slowmoHold <= 0) { this.slowmoHold = 0; this._emit('onSlowmoEnd'); }
+      }
       this.raceClock += sdt;
       if (this.cooldown > 0) this.cooldown = Math.max(0, this.cooldown - sdt);
 
@@ -250,8 +255,9 @@ export class RaceEngine {
 
   // ---------- Manœuvre : machine à états ----------
   get timeScale() {
-    // Ralenti uniquement pendant la question ; 1× dès le choix du cap.
-    return this.man === MAN.QUESTION ? BALANCE.maneuver.questionTimeScale : 1;
+    // Ralenti pendant la question ET pendant le maintien de 1 s après la réponse.
+    return (this.man === MAN.QUESTION || this.slowmoHold > 0)
+      ? BALANCE.maneuver.questionTimeScale : 1;
   }
 
   canManeuver() {
@@ -281,6 +287,8 @@ export class RaceEngine {
     const elapsed = this.raceClock - this.qStartClock;
     const correct = !timedOut && index === q.correctIndex;
     this.stats.questions++;
+    // Maintien du ralenti 1 s après la réponse, puis retour à la vitesse normale.
+    this.slowmoHold = BALANCE.maneuver.resumeDelay;
     this._emit('onQuestionResult', correct, index, q.correctIndex, timedOut);
 
     if (correct) {
