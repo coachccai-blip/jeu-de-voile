@@ -50,6 +50,11 @@ export const STRINGS = {
     hudPosition: 'Pos',
     hudWind: 'Vent',
 
+    // Présentateur (intro de course)
+    presenterName: 'Max Écume',
+    presenterRole: 'Votre présentateur',
+    introStart: '🏁 C\'est parti !',
+
     // Départ
     countGo: 'GO !',
     countGet: 'Parez…',

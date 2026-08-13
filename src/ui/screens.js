@@ -518,7 +518,7 @@ export function renderCredits(ctx) {
 }
 
 // ─────────────────────────── TUTORIEL ───────────────────────────
-export function createTutorial(root, onDone) {
+export function createTutorial(root, onDone, onBegin) {
   const steps = [
     { key: 'tutStep1', advance: 'next' },
     { key: 'tutStep2', advance: 'question' },
@@ -543,6 +543,8 @@ export function createTutorial(root, onDone) {
     el.classList.remove('hidden');
   }
   function advance() {
+    // Le 1er dialogue passé → la course (top départ) peut démarrer.
+    if (i === 0 && onBegin) onBegin();
     i++;
     if (i >= steps.length) { el.remove(); onDone && onDone(); return; }
     show();

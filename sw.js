@@ -7,7 +7,7 @@
  * Chemins RELATIFS au scope du SW → fonctionne aussi bien à la racine que sous
  * /jeu-de-voile/ sur GitHub Pages.
  */
-const CACHE = 'regatta-quiz-v1';
+const CACHE = 'regatta-quiz-v2';
 
 const ASSETS = [
   './',
@@ -33,6 +33,7 @@ const ASSETS = [
   'src/game/ai.js',
   'src/game/mathutils.js',
   'src/ui/screens.js',
+  'src/ui/raceIntro.js',
   'src/ui/hud.js',
   'src/ui/qcm.js',
   'src/ui/worldmap.js',

@@ -12,6 +12,7 @@ import { COURSES } from './data/courses.js';
 import { difficultyIndexFromSlider } from './config/balance.js';
 import { recordResult, getCourseProgress, isTutorialSeen, setTutorialSeen } from './save/save.js';
 import { registerSW } from './pwa.js';
+import { showRaceIntro } from './ui/raceIntro.js';
 
 registerSW();
 
@@ -34,6 +35,7 @@ window.addEventListener('pointerdown', ensureAudio, { once: true });
 window.addEventListener('keydown', ensureAudio, { once: true });
 
 function cleanupRace() {
+  if (current.intro) { current.intro.close && current.intro.close(); current.intro = null; }
   if (current.view) { current.view.destroy(); current.view = null; }
   if (current.engine) { current.engine.stop(); current.engine = null; }
   if (current.tutorial) { current.tutorial.destroy && current.tutorial.destroy(); current.tutorial = null; }
@@ -82,7 +84,13 @@ function startRace({ courseId, slider }) {
   });
   current.engine = engine; current.view = view;
   window.__regatta.engine = engine;
-  requestAnimationFrame(() => { engine.resize(); engine.start(); });
+  requestAnimationFrame(() => {
+    engine.resize();
+    engine.start();
+    engine.setPaused(true); // la course est en attente…
+    // …le présentateur introduit le parcours ; le top départ démarre au clic.
+    current.intro = showRaceIntro(wrap, course, () => engine.setPaused(false));
+  });
 }
 
 function finishRace(course, slider, results, won, engine) {
@@ -108,14 +116,16 @@ function startTutorial({ fromCampaign } = {}) {
     cleanupRace();
     go(fromCampaign ? 'campaign' : 'menu');
   };
-  const tutorial = createTutorial(wrap, finishTut);
+  // La course ne démarre (top départ) qu'après le premier dialogue du tutoriel.
+  const tutorial = createTutorial(wrap, finishTut, () => engine.setPaused(false));
   const view = new RaceView(wrap, engine, {
     onQuit: finishTut,
     onFinish: () => {}, // en tutoriel, pas de podium : on termine via le panneau
     tutorial,
   });
   current.engine = engine; current.view = view; current.tutorial = tutorial;
-  requestAnimationFrame(() => { engine.resize(); engine.start(); });
+  window.__regatta.engine = engine;
+  requestAnimationFrame(() => { engine.resize(); engine.start(); engine.setPaused(true); });
 }
 
 // Démarrage
