@@ -4,8 +4,8 @@
  */
 export const STRINGS = {
   fr: {
-    gameTitle: 'REGATTA QUIZ',
-    gameSubtitle: 'Course à la voile · Foils & calcul mental',
+    gameTitle: 'X-SAIL QUIZ',
+    gameSubtitle: 'Course à la voile pour booster sa transversalité',
 
     // Menu
     menuCampaign: 'Campagne',
@@ -119,8 +119,9 @@ export const STRINGS = {
     // Crédits
     creditsTitle: 'Crédits',
     creditsBody:
-      'Regatta Quiz — prototype open-source inspiré de SailGP.\n' +
-      'Conception & code : projet éducatif.\n' +
+      'X-Sail Quiz — course à la voile pour booster sa transversalité.\n' +
+      'Créateur : Clém Oussaillon.\n' +
+      'Contenu pédagogique : les 8 produits Leyton (vrai / faux).\n' +
       'Audio 100% procédural (Web Audio API), libre de droits.\n' +
       'Aucune dépendance réseau — jouable hors ligne.',
     creditsBack: '← Menu',

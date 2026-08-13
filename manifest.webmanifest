@@ -1,7 +1,7 @@
 {
-  "name": "Regatta Quiz — Course à la voile",
-  "short_name": "Regatta Quiz",
-  "description": "Jeu de course à la voile éducatif inspiré de SailGP. Jouable hors ligne.",
+  "name": "X-Sail Quiz — Course à la voile",
+  "short_name": "X-Sail Quiz",
+  "description": "Course à la voile pour booster sa transversalité (produits Leyton, vrai/faux). Jouable hors ligne.",
   "lang": "fr",
   "dir": "ltr",
   "start_url": "./index.html",
