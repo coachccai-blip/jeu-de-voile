@@ -157,8 +157,11 @@ export class RaceEngine {
     }
 
     if (this.phase === PHASE.RACING) {
-      this.raceClock += dt;
-      if (this.cooldown > 0) this.cooldown = Math.max(0, this.cooldown - dt);
+      // Ralenti « bullet-time » : le monde tourne au ralenti PENDANT la question,
+      // et repasse à 1× dès que le joueur choisit son cap (phase AIMING).
+      const sdt = dt * this.timeScale;
+      this.raceClock += sdt;
+      if (this.cooldown > 0) this.cooldown = Math.max(0, this.cooldown - sdt);
 
       // Question chronométrée (source de vérité = horloge sim)
       if (this.man === MAN.QUESTION && this.currentQuestion) {
@@ -175,12 +178,12 @@ export class RaceEngine {
       }
 
       // Bots
-      for (const bc of this.bots) bc.update(dt, this.course, this.checkpoints);
+      for (const bc of this.bots) bc.update(sdt, this.course, this.checkpoints);
 
       // Physique + checkpoints
       for (const b of this.boats) {
         const prevSplash = b.splashTimer > 0;
-        b.update(dt, this.course);
+        b.update(sdt, this.course);
         this._checkCheckpoint(b);
         if (b === this.player) {
           const k = b.speedKnots();
@@ -190,7 +193,7 @@ export class RaceEngine {
       }
 
       this._computeRanks();
-      this._updateWind(dt);
+      this._updateWind(sdt);
       audio.setWindIntensity(clamp(this.player.speed / BALANCE.boat.maxSpeed, 0, 1));
 
       // HUD
@@ -246,6 +249,11 @@ export class RaceEngine {
   }
 
   // ---------- Manœuvre : machine à états ----------
+  get timeScale() {
+    // Ralenti uniquement pendant la question ; 1× dès le choix du cap.
+    return this.man === MAN.QUESTION ? BALANCE.maneuver.questionTimeScale : 1;
+  }
+
   canManeuver() {
     return this.phase === PHASE.RACING && this.man === MAN.NONE && this.cooldown <= 0 && !this.player.finished;
   }
@@ -307,7 +315,7 @@ export class RaceEngine {
     }
   }
 
-  /** Prévisualise le cap depuis un point écran (pendant l'aiming). */
+  /** Prévisualise le cap depuis un point écran (la flèche suit la souris). */
   previewAim(sx, sy) {
     if (this.man !== MAN.AIMING) return;
     const w = this.screenToWorld(sx, sy);
@@ -315,15 +323,16 @@ export class RaceEngine {
     const heading = Math.atan2(dy, dx);
     const d = Math.hypot(dx, dy);
     const mul = clamp(0.7 + d / 600, 0.7, 1.2); // loin = intention de vitesse plus forte
-    this.aimPreview = { heading, mul };
+    // On mémorise le POINT MONDE exact visé : le bateau devra passer par ce pixel.
+    this.aimPreview = { heading, mul, point: { x: w.x, y: w.y } };
   }
 
   confirmAim(sx, sy) {
     if (this.man !== MAN.AIMING) return;
     if (sx !== undefined) this.previewAim(sx, sy);
-    const p = this.aimPreview || { heading: this.player.heading, mul: 1 };
+    const p = this.aimPreview || { heading: this.player.heading, mul: 1, point: null };
     const b = this.pendingBoost || { add: 0, dur: 0 };
-    this.player.applyManeuver(p.heading, p.mul, b.add, b.dur);
+    this.player.applyManeuver(p.point, p.mul, b.add, b.dur);
     if (b.add > 0) { audio.sfx('boost'); this._emit('onFeedback', 'boost'); }
     if (this.player.foiling) this._emit('onFeedback', 'foiling');
     this.pendingBoost = null;
@@ -716,7 +725,8 @@ export class RaceEngine {
       const p = getXY(e); this.previewAim(p.x, p.y); this._aiming = true;
     };
     const move = (e) => {
-      if (this.man !== MAN.AIMING || !this._aiming) return;
+      if (this.man !== MAN.AIMING) return;
+      // La flèche suit la souris en permanence (survol), pas seulement en glissant.
       const p = getXY(e); this.previewAim(p.x, p.y);
     };
     const up = (e) => {

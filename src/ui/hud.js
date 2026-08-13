@@ -104,6 +104,9 @@ export class RaceView {
     const paused = !this.engine.paused;
     this.engine.setPaused(paused);
     this.pauseOverlay.classList.toggle('hidden', !paused);
+    // En pause : coupe la musique (et l'ambiance vent) ; reprend au resume.
+    if (paused) { audio.stopMusic(); audio.stopWind(); }
+    else { audio.playMusic('race'); audio.startWind(); }
     audio.sfx('uiClick');
   }
 

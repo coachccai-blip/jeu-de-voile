@@ -16,7 +16,7 @@ export const BALANCE = {
     minSpeed: 55,            // vitesse de croisière minimale (le bateau avance toujours)
     maxSpeed: 240,           // plafond de vitesse "sur foils"
     baseCruise: 95,          // vitesse cible sans boost, cap optimal
-    turnRate: 2.6,           // rad/s — vitesse de rotation vers le cap visé
+    turnRate: 4.4,           // rad/s — rotation vive vers le cap (détours peu amples)
     accel: 90,               // accélération vers la vitesse cible (u/s^2)
     decel: 130,              // décélération (u/s^2)
     // "Vol sur foils" : au-dessus de ce ratio de vitesse, le bateau déjauge (écume+).
@@ -33,7 +33,10 @@ export const BALANCE = {
   },
 
   maneuver: {
-    cooldown: 3.0,           // cooldown du bouton Manœuvrer (s)
+    cooldown: 1.0,           // cooldown du bouton Manœuvrer (s)
+    // Ralenti « bullet-time » pendant la question (le monde tourne au ralenti pour
+    // laisser réfléchir). Retour à 1× dès que le joueur choisit son cap.
+    questionTimeScale: 0.5,
   },
 
   splashdown: {

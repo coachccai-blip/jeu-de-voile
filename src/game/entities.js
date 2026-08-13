@@ -13,6 +13,7 @@ export class Boat {
     this.y = start.y;
     this.heading = start.angle;
     this.targetHeading = start.angle;
+    this.waypoint = null;       // point du monde à atteindre précisément (manœuvre joueur)
     this.speed = BALANCE.boat.minSpeed;
     this.desiredSpeedMul = 1;   // intention de vitesse [0.6..1.2] fixée par la manœuvre
     this.boostAdd = 0;
@@ -32,9 +33,15 @@ export class Boat {
     this.heel = 0;              // gîte visuelle
   }
 
-  /** Applique le résultat d'une manœuvre réussie (nouveau cap + boost). */
-  applyManeuver(newHeading, speedMul, boostAdd, boostDuration) {
-    this.targetHeading = newHeading;
+  /**
+   * Applique le résultat d'une manœuvre réussie : cap vers un point précis + boost.
+   * @param waypoint {x,y} point du monde que le bateau doit traverser (ou null)
+   */
+  applyManeuver(waypoint, speedMul, boostAdd, boostDuration) {
+    if (waypoint) {
+      this.waypoint = { x: waypoint.x, y: waypoint.y };
+      this.targetHeading = Math.atan2(waypoint.y - this.y, waypoint.x - this.x);
+    }
     this.desiredSpeedMul = clamp(speedMul, 0.6, 1.2);
     if (boostAdd > 0) {
       this.boostAdd = Math.max(this.boostAdd, boostAdd);
@@ -53,6 +60,18 @@ export class Boat {
 
   update(dt, course) {
     const B = BALANCE.boat;
+
+    // --- Navigation vers le point cliqué (passe précisément par ce pixel) ---
+    if (this.waypoint) {
+      const dx = this.waypoint.x - this.x, dy = this.waypoint.y - this.y;
+      const d = Math.hypot(dx, dy);
+      const arrive = Math.max(14, this.speed * dt * 1.5);
+      if (d <= arrive) {
+        this.waypoint = null; // atteint : on garde le cap courant et on file tout droit
+      } else {
+        this.targetHeading = Math.atan2(dy, dx);
+      }
+    }
 
     // --- Rotation vers le cap visé ---
     this.heading = approachAngle(this.heading, this.targetHeading, B.turnRate * dt);
