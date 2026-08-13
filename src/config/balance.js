@@ -81,13 +81,16 @@ export const BALANCE = {
 
   difficulty: {
     // 5 crans, du plus facile au plus extrême. Interpolation continue entre crans.
+    // Le LEVIER PRINCIPAL de la difficulté = les QUESTIONS (taille des nombres,
+    // retenues, temps de réponse). Les bots ne deviennent PAS parfaits en extrême :
+    // botSkill est plafonné pour que la course reste gagnable en répondant bien.
     // timeLimit = temps RÉEL (s) pour répondre. Plafond : 6 s (très facile).
     levels: [
-      { key: 'tresFacile', label: 'Très facile', maxOperand: 9,  carry: false, timeLimit: 6.0, botSkill: 0.40, botSpeed: 2.6 },
-      { key: 'facile',     label: 'Facile',      maxOperand: 20, carry: false, timeLimit: 5.5, botSkill: 0.55, botSpeed: 2.1 },
-      { key: 'moyen',      label: 'Moyen',       maxOperand: 49, carry: true,  timeLimit: 5.0, botSkill: 0.68, botSpeed: 1.7 },
-      { key: 'difficile',  label: 'Difficile',   maxOperand: 99, carry: true,  timeLimit: 4.5, botSkill: 0.80, botSpeed: 1.3 },
-      { key: 'extreme',    label: 'Extrême',     maxOperand: 199,carry: true,  timeLimit: 3.8, botSkill: 0.90, botSpeed: 1.0 },
+      { key: 'tresFacile', label: 'Très facile', maxOperand: 8,   carry: false, timeLimit: 6.0, botSkill: 0.28, botSpeed: 2.9 },
+      { key: 'facile',     label: 'Facile',      maxOperand: 20,  carry: false, timeLimit: 5.4, botSkill: 0.40, botSpeed: 2.5 },
+      { key: 'moyen',      label: 'Moyen',       maxOperand: 50,  carry: true,  timeLimit: 4.8, botSkill: 0.52, botSpeed: 2.1 },
+      { key: 'difficile',  label: 'Difficile',   maxOperand: 99,  carry: true,  timeLimit: 4.2, botSkill: 0.62, botSpeed: 1.8 },
+      { key: 'extreme',    label: 'Extrême',     maxOperand: 200, carry: true,  timeLimit: 3.5, botSkill: 0.72, botSpeed: 1.6 },
     ],
     defaultIndex: 1,
   },
