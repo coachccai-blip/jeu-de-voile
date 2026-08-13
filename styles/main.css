@@ -407,6 +407,7 @@ input[type=range]::-moz-range-thumb {
 .memo-card { width: min(820px, 96vw); max-height: 90vh; display: flex; flex-direction: column; background: var(--panel-2); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
 .memo-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
 .memo-head h2 { font-size: 1.3rem; }
+.memo-emoji { font-size: 1.5rem; }
 .memo-head .memo-sub { font-size: 0.85rem; color: var(--text-dim); }
 .memo-body { overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; }
 .memo-body h3 { margin-top: 12px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }

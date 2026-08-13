@@ -64,8 +64,8 @@ export const STRINGS = {
     qcmCorrect: 'Juste !',
     qcmWrong: 'Faux',
     qcmBoost: 'BOOST',
-    answerTrue: 'VRAI',
-    answerFalse: 'FAUX',
+    answerTrue: 'Vrai',
+    answerFalse: 'Faux',
 
     // Produit / fiche mémo
     preRaceProduct: 'Produit',

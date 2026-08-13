@@ -246,24 +246,57 @@ function startWorldCanvas(canvas) {
   canvas._stop = () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
 }
 
+// Emoji « héros » par produit (rend la fiche mémo plus vivante).
+const CHAPTER_EMOJI = {
+  'cir': '🔬', 'ipbox': '💡', 'aides': '💶', 'bpo': '🏥',
+  'payroll': '👥', 'taxes-locales': '🏙️', 'taxes-nationales': '🏛️', 'energie': '⚡',
+};
+
+// Décorateur : insère des emojis PERTINENTS après certains mots-clés du texte.
+// (Appliqué au texte de présentation pour l'aérer, pas aux 60 affirmations.)
+const EMOJI_RULES = [
+  [/\brecherche(s)?\b/i, '🔬'], [/\binnovation(s)?\b/i, '💡'], [/\bbrevet(s)?\b/i, '📄'],
+  [/\bcontrôle fiscal\b/i, '🔎'], [/\bmillions? d.euros\b/i, '💶'], [/\b€\b/i, '💶'],
+  [/\binternational(e|ement)?\b/i, '🌍'], [/\b1?7 pays\b/i, '🌍'],
+  [/\bformation(s)?\b/i, '🎓'], [/\bavocat(s)?\b/i, '⚖️'], [/\bplateforme\b/i, '💻'],
+  [/\bénergie(s)?\b/i, '⚡'], [/\bsalari(é|és|aux)\b/i, '👥'], [/\bcharges sociales\b/i, '💼'],
+  [/\btaxe(s)?\b/i, '🧾'], [/\bsubvention(s)?\b/i, '💶'], [/\bclient(s|e|es)?\b/i, '🤝'],
+  [/\béquipe(s)?\b/i, '👥'], [/\bcroissance\b/i, '📈'], [/\bremboursement\b/i, '💰'],
+  [/\bsécuris(e|é|ation)\w*\b/i, '🔒'], [/\bméthodologie\b/i, '🧭'], [/\bdéclaration(s)?\b/i, '📝'],
+];
+function decorateEmoji(text, maxPerPara = 3) {
+  let count = 0;
+  for (const [re, emo] of EMOJI_RULES) {
+    if (count >= maxPerPara) break;
+    const m = text.match(re);
+    if (m) {
+      // insère l'emoji juste après la 1re occurrence du mot-clé
+      text = text.slice(0, m.index + m[0].length) + ' ' + emo + text.slice(m.index + m[0].length);
+      count++;
+    }
+  }
+  return text;
+}
+
 /** Fiche mémo : présentation pédagogique du produit + toutes les réponses (révision). */
 function openMemo(root, chapter) {
   audio.sfx('uiClick');
+  const emo = CHAPTER_EMOJI[chapter.id] || '📘';
   const ov = document.createElement('div');
   ov.className = 'memo-overlay';
   ov.innerHTML = `
     <div class="memo-card">
       <div class="memo-head">
-        <div><h2>${chapter.title}</h2><div class="memo-sub">${t('memoTitle')} · ${chapter.short}</div></div>
+        <div><h2><span class="memo-emoji">${emo}</span> ${chapter.title}</h2><div class="memo-sub">${t('memoTitle')} · ${chapter.short}</div></div>
         <button class="btn btn-ghost memo-close">✕ ${t('memoClose')}</button>
       </div>
       <div class="memo-body">
-        <p class="memo-hint">${t('memoHint')}</p>
-        <h3>${t('memoIntro')}</h3>
-        <div class="memo-intro">${chapter.intro.map(p => `<p>${p}</p>`).join('')}</div>
-        <h3 class="mt">✓ ${t('memoTrue')} (${chapter.vrai.length})</h3>
+        <p class="memo-hint">📌 ${t('memoHint')}</p>
+        <h3>📘 ${t('memoIntro')}</h3>
+        <div class="memo-intro">${chapter.intro.map(p => `<p>${decorateEmoji(p)}</p>`).join('')}</div>
+        <h3 class="mt">✅ ${t('memoTrue')} (${chapter.vrai.length})</h3>
         <ul class="memo-list mt">${chapter.vrai.map(s => `<li><span>${s}</span></li>`).join('')}</ul>
-        <h3 class="mf">✗ ${t('memoFalse')} (${chapter.faux.length})</h3>
+        <h3 class="mf">❌ ${t('memoFalse')} (${chapter.faux.length})</h3>
         <ul class="memo-list mf">${chapter.faux.map(s => `<li><span>${s}</span></li>`).join('')}</ul>
       </div>
     </div>`;
