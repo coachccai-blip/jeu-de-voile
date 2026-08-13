@@ -1,0 +1,19 @@
+{
+  "name": "Regatta Quiz — Course à la voile",
+  "short_name": "Regatta Quiz",
+  "description": "Jeu de course à la voile éducatif inspiré de SailGP. Jouable hors ligne.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#052033",
+  "theme_color": "#062a45",
+  "categories": ["games", "education"],
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

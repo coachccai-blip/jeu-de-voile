@@ -13,6 +13,12 @@ export const STRINGS = {
     menuSettings: 'Réglages',
     menuCredits: 'Crédits',
     menuTapToStart: 'Cliquez pour naviguer',
+    menuInstall: '📲 Installer le jeu',
+    installTitle: 'Installer Regatta Quiz',
+    installGeneric: 'Le jeu s\'installe comme une application et fonctionne hors ligne.\n\nSur PC (Chrome/Edge) : icône « Installer » dans la barre d\'adresse, ou menu ⋮ → « Installer Regatta Quiz ».\n\nSur Android : menu ⋮ → « Ajouter à l\'écran d\'accueil ».',
+    installIOS: 'Sur iPhone/iPad (Safari) : appuyez sur le bouton Partager ⬆️, puis « Sur l\'écran d\'accueil ». Le jeu fonctionne ensuite hors ligne.',
+    installClose: 'Fermer',
+    installAlready: '✓ Jeu installé',
 
     // Carte du monde
     mapTitle: 'Carte du monde',

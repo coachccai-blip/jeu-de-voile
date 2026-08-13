@@ -11,6 +11,9 @@ import {
 import { COURSES } from './data/courses.js';
 import { difficultyIndexFromSlider } from './config/balance.js';
 import { recordResult, getCourseProgress, isTutorialSeen, setTutorialSeen } from './save/save.js';
+import { registerSW } from './pwa.js';
+
+registerSW();
 
 const app = document.getElementById('app');
 const root = document.createElement('div');

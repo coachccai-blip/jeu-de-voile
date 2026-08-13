@@ -8,6 +8,7 @@ import { audio } from '../audio/audio.js';
 import { COURSES, TEAMS, courseIndex, geoToMap } from '../data/courses.js';
 import { BALANCE, difficultyFromSlider, difficultyIndexFromSlider } from '../config/balance.js';
 import { drawWorldMap } from './worldmap.js';
+import { canInstall, isInstalled, isIOS, promptInstall, onPwaChange } from '../pwa.js';
 
 /** Rangée de 5 trophées (un par difficulté). `current`/`earnedNow` = index à mettre en avant. */
 function trophiesHTML(trophies, { current = -1, earnedNow = -1 } = {}) {
@@ -53,9 +54,17 @@ export function renderMenu(ctx) {
         <button class="btn btn-primary big" data-go="campaign">⛵ ${t('menuCampaign')}</button>
         <button class="btn" data-go="tutorial">🎓 ${t('menuTutorial')}</button>
         <button class="btn" data-go="settings">⚙️ ${t('menuSettings')}</button>
+        <button class="btn install-btn">${t('menuInstall')}</button>
         <button class="btn btn-ghost" data-go="credits">${t('menuCredits')}</button>
       </nav>
       <p class="key-hint">${t('keyHint')}</p>
+    </div>
+    <div class="modal-overlay hidden install-modal">
+      <div class="modal-card">
+        <h2>${t('installTitle')}</h2>
+        <pre class="install-text"></pre>
+        <div class="modal-actions"><button class="btn btn-ghost install-close">${t('installClose')}</button></div>
+      </div>
     </div>
   `;
   ctx.root.appendChild(el);
@@ -64,6 +73,31 @@ export function renderMenu(ctx) {
     btnSfx(b);
     b.addEventListener('click', () => ctx.go(b.dataset.go));
   });
+
+  // Bouton « Installer le jeu » (PWA)
+  const installBtn = el.querySelector('.install-btn');
+  const modal = el.querySelector('.install-modal');
+  const installText = el.querySelector('.install-text');
+  let off = null;
+  const refreshInstall = () => {
+    if (!installBtn.isConnected) { if (off) off(); return; } // menu remplacé : on se désabonne
+    if (isInstalled()) { installBtn.textContent = t('installAlready'); installBtn.disabled = true; installBtn.classList.add('btn-ghost'); }
+    else { installBtn.textContent = t('menuInstall'); installBtn.disabled = false; }
+  };
+  refreshInstall();
+  off = onPwaChange(refreshInstall);
+  btnSfx(installBtn);
+  installBtn.addEventListener('click', async () => {
+    if (isInstalled()) return;
+    if (canInstall()) {
+      const outcome = await promptInstall();
+      if (outcome !== 'accepted') { installText.textContent = t('installGeneric'); modal.classList.remove('hidden'); }
+    } else {
+      installText.textContent = isIOS() ? t('installIOS') : t('installGeneric');
+      modal.classList.remove('hidden');
+    }
+  });
+  el.querySelector('.install-close').addEventListener('click', () => { audio.sfx('uiClick'); modal.classList.add('hidden'); });
 }
 
 function startMenuBg(canvas) {

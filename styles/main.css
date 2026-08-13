@@ -59,6 +59,8 @@ body {
 }
 .btn-primary:hover { box-shadow: 0 8px 26px rgba(47,143,214,0.5); }
 .btn-ghost { background: transparent; border-color: var(--border); color: var(--text-dim); }
+.btn:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+.install-text { white-space: pre-wrap; text-align: left; line-height: 1.55; color: var(--text); font-family: var(--font); max-height: 55vh; overflow: auto; margin: 4px 0; font-size: 0.95rem; }
 .btn-danger { background: linear-gradient(180deg, #d64a3f, #a5342b); border-color: rgba(255,150,140,0.4); }
 
 /* ---------------- Écrans génériques ---------------- */
@@ -353,8 +355,10 @@ input[type=range]::-moz-range-thumb {
 .qcm-verdict.ko { background: var(--danger); color: #fff; }
 
 /* ---------------- PODIUM ---------------- */
-.podium-screen { overflow: auto; background: radial-gradient(circle at 50% 0%, var(--ocean-2), var(--ocean-0)); }
-.podium-hero { text-align: center; padding: 30px 20px 10px; }
+/* Podium : occupe tout l'écran, tient sans molette. Les boutons d'action restent
+   toujours visibles en bas ; seul le panneau latéral défile si l'écran est court. */
+.podium-screen { height: 100%; display: flex; flex-direction: column; overflow: hidden; background: radial-gradient(circle at 50% 0%, var(--ocean-2), var(--ocean-0)); }
+.podium-hero { flex: 0 0 auto; text-align: center; padding: 18px 20px 6px; }
 .podium-hero h1 { font-size: clamp(2rem, 6vw, 3.4rem); }
 .podium-hero.victory h1 { background: linear-gradient(180deg, #fff, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
@@ -363,7 +367,7 @@ input[type=range]::-moz-range-thumb {
 .podium-trophies { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
 .podium-trophies .pt-label { color: var(--text-dim); }
 .podium-trophies .trophy { font-size: 1.6rem; }
-.podium-cols { display: flex; gap: 24px; padding: 10px 26px 26px; flex-wrap: wrap; justify-content: center; }
+.podium-cols { flex: 1 1 auto; min-height: 0; display: flex; gap: 24px; padding: 6px 26px 14px; flex-wrap: wrap; justify-content: center; align-items: stretch; }
 .podium-stand { flex: 1; min-width: 300px; display: flex; align-items: flex-end; justify-content: center; gap: 14px; padding-top: 30px; }
 .stand { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 90px; }
 .stand.empty { visibility: hidden; }
@@ -379,7 +383,7 @@ input[type=range]::-moz-range-thumb {
 .stand.place-2 .stand-block { height: 110px; }
 .stand.place-3 .stand-block { height: 85px; }
 .stand.me .stand-name { color: var(--accent); }
-.podium-side { flex: 1; min-width: 300px; max-width: 460px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; }
+.podium-side { flex: 1; min-width: 300px; max-width: 460px; min-height: 0; overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; }
 .podium-side h3 { margin: 14px 0 8px; font-size: 1rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 .podium-side h3:first-child { margin-top: 0; }
 .rank-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
@@ -394,7 +398,7 @@ input[type=range]::-moz-range-thumb {
 .stats-grid span { font-size: 0.75rem; color: var(--text-dim); }
 .stats-grid strong { font-size: 1.25rem; color: var(--accent); }
 .best-times { list-style: decimal inside; color: var(--text-dim); font-variant-numeric: tabular-nums; }
-.podium-actions { display: flex; gap: 12px; justify-content: center; padding: 0 20px 30px; flex-wrap: wrap; }
+.podium-actions { flex: 0 0 auto; display: flex; gap: 12px; justify-content: center; padding: 12px 20px 18px; flex-wrap: wrap; background: linear-gradient(0deg, rgba(4,20,34,0.6), transparent); }
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
 
 /* ---------------- RÉGLAGES / CRÉDITS ---------------- */
