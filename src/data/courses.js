@@ -28,8 +28,8 @@ export const OPPONENT_POOL = [
   { name: 'Pierrad Tribord',        color: '#E0C4A0', sail: '#ffffff' }, // Pierre-Adrien
   { name: 'Mari Desabysses',        color: '#A0DFE6', sail: '#ffffff' }, // Mariana
   { name: 'Kim Ducorail',           color: '#D2A6F0', sail: '#ffffff' }, // Hakim
-  { name: 'Grazi Auportant',        color: '#F5C0DA', sail: '#ffffff' }, // Graziella
-  { name: 'Dam’ Duressac',     color: '#A6E0B0', sail: '#ffffff' }, // Damien
+  { name: 'Yoshi Vespa',            color: '#F5C0DA', sail: '#ffffff' }, // Graziella
+  { name: 'Damn Duressac',          color: '#A6E0B0', sail: '#ffffff' }, // Damien
   { name: 'Fair’ Dumistral',   color: '#EAD79A', sail: '#ffffff' }, // Fairrouz
 ];
 
