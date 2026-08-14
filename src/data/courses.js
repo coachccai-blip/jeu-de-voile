@@ -24,7 +24,7 @@ export const OPPONENT_POOL = [
   { name: 'Clém Oussaillon',        color: '#8FE0D2', sail: '#ffffff' }, // Clément
   { name: 'Thib’ Alizé',       color: '#B7C0F2', sail: '#ffffff' }, // Thibault
   { name: 'JuL Delavague',          color: '#F2A0DE', sail: '#ffffff' }, // Julie
-  { name: 'Aïna Durécif',           color: '#CDE89A', sail: '#ffffff' }, // Aina
+  { name: 'Vaïana Durécif',         color: '#CDE89A', sail: '#ffffff' }, // Aina
   { name: 'Pierrad Tribord',        color: '#E0C4A0', sail: '#ffffff' }, // Pierre-Adrien
   { name: 'Mari Desabysses',        color: '#A0DFE6', sail: '#ffffff' }, // Mariana
   { name: 'Kim Ducorail',           color: '#D2A6F0', sail: '#ffffff' }, // Hakim
