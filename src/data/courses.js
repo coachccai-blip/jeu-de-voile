@@ -15,7 +15,7 @@ export const PLAYER = { id: 'joueur', name: 'Vous', color: '#8FB6F2', sail: '#ff
 // Prénoms anonymisés : surnom + patronyme « marin » (dans l'esprit « Clém Oussaillon »).
 export const OPPONENT_POOL = [
   { name: 'Dav’ Larguevent',   color: '#9FE3B4', sail: '#ffffff' }, // David
-  { name: 'Agn’ Ducabestan',        color: '#F2A9C4', sail: '#ffffff' }, // Agnès
+  { name: 'Nessie Duloch',          color: '#F2A9C4', sail: '#ffffff' }, // Agnès
   { name: 'Pierrot Deshoules',      color: '#F6B482', sail: '#ffffff' }, // Pierre
   { name: 'Sab’ Ladérive',     color: '#C7A9EC', sail: '#ffffff' }, // Sabra
   { name: 'Ben Wadecoco',           color: '#A9D8F2', sail: '#ffffff' }, // Benoit
