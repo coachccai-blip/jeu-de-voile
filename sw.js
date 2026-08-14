@@ -7,7 +7,7 @@
  * Chemins RELATIFS au scope du SW → fonctionne aussi bien à la racine que sous
  * /jeu-de-voile/ sur GitHub Pages.
  */
-const CACHE = 'regatta-quiz-v19';
+const CACHE = 'regatta-quiz-v20';
 
 const ASSETS = [
   './',
