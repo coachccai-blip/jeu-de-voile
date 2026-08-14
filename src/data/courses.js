@@ -15,21 +15,21 @@ export const PLAYER = { id: 'joueur', name: 'Vous', color: '#8FB6F2', sail: '#ff
 // Prénoms anonymisés : surnom + patronyme « marin » (dans l'esprit « Clém Oussaillon »).
 export const OPPONENT_POOL = [
   { name: 'Dav’ Larguevent',   color: '#9FE3B4', sail: '#ffffff' }, // David
-  { name: 'Aggy Ducap',             color: '#F2A9C4', sail: '#ffffff' }, // Agnès
+  { name: 'Agn’ Ducabestan',        color: '#F2A9C4', sail: '#ffffff' }, // Agnès
   { name: 'Pierrot Deshoules',      color: '#F6B482', sail: '#ffffff' }, // Pierre
   { name: 'Sab’ Ladérive',     color: '#C7A9EC', sail: '#ffffff' }, // Sabra
-  { name: 'Ben Grandvoile',         color: '#A9D8F2', sail: '#ffffff' }, // Benoit
+  { name: 'Ben Wadecoco',           color: '#A9D8F2', sail: '#ffffff' }, // Benoit
   { name: 'Céci Bellécume',         color: '#F2D6A9', sail: '#ffffff' }, // Cécilia
-  { name: 'Lindy Bonvent',          color: '#E6A0A0', sail: '#ffffff' }, // Linda
+  { name: 'Lindouche Froide',       color: '#E6A0A0', sail: '#ffffff' }, // Linda
   { name: 'Clém Oussaillon',        color: '#8FE0D2', sail: '#ffffff' }, // Clément
   { name: 'Thib’ Alizé',       color: '#B7C0F2', sail: '#ffffff' }, // Thibault
-  { name: 'Jul’ Delavague',    color: '#F2A0DE', sail: '#ffffff' }, // Julie
+  { name: 'JuL Delavague',          color: '#F2A0DE', sail: '#ffffff' }, // Julie
   { name: 'Aïna Durécif',           color: '#CDE89A', sail: '#ffffff' }, // Aina
   { name: 'Pierrad Tribord',        color: '#E0C4A0', sail: '#ffffff' }, // Pierre-Adrien
   { name: 'Mari Desabysses',        color: '#A0DFE6', sail: '#ffffff' }, // Mariana
   { name: 'Kim Ducorail',           color: '#D2A6F0', sail: '#ffffff' }, // Hakim
-  { name: 'Grazi Delalagune',       color: '#F5C0DA', sail: '#ffffff' }, // Graziella
-  { name: 'Dam’ Duvarech',     color: '#A6E0B0', sail: '#ffffff' }, // Damien
+  { name: 'Grazi Auportant',        color: '#F5C0DA', sail: '#ffffff' }, // Graziella
+  { name: 'Dam’ Duressac',     color: '#A6E0B0', sail: '#ffffff' }, // Damien
   { name: 'Fair’ Dumistral',   color: '#EAD79A', sail: '#ffffff' }, // Fairrouz
 ];
 
