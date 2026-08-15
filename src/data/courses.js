@@ -31,6 +31,7 @@ export const OPPONENT_POOL = [
   { name: 'Yoshi Vespa',            color: '#F5C0DA', sail: '#ffffff' }, // Graziella
   { name: 'Damn Duressac',          color: '#A6E0B0', sail: '#ffffff' }, // Damien
   { name: 'Fair’ Dumistral',   color: '#EAD79A', sail: '#ffffff' }, // Fairrouz
+  { name: 'Jess Lafourmi',          color: '#F2B36B', sail: '#ffffff' }, // Jess
 ];
 
 // Le joueur est toujours l'équipe index 0 ; les adversaires suivent.
