@@ -101,49 +101,118 @@ body {
 .menu-nav .btn { width: 100%; }
 .key-hint { margin-top: 26px; color: var(--text-dim); font-size: 0.8rem; opacity: 0.7; }
 
-/* ---------------- CARTE DU MONDE ---------------- */
-.map-screen { background: var(--ocean-0); }
-.world-map { position: relative; flex: 1; overflow: hidden; }
+/* ---------------- CAMPAGNE (carte + cartes de course) ---------------- */
+.map-screen { background: radial-gradient(circle at 50% 0%, var(--ocean-2), var(--ocean-0)); }
+.campaign-body {
+  flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 18px);
+  padding: clamp(10px, 1.8vh, 20px) clamp(10px, 2.4vw, 28px) 24px;
+}
+/* Progression globale : rang + barre + total de trophées */
+.campaign-progress {
+  flex: 0 0 auto; display: flex; align-items: center; gap: clamp(10px, 2vw, 22px);
+  width: 100%; max-width: 1180px; margin: 0 auto;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 10px 16px;
+}
+.cp-rank { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+.cp-ico { font-size: 1.8rem; line-height: 1; }
+.cp-lbl { display: block; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); }
+.cp-rank strong { font-size: 1.1rem; color: var(--accent); }
+.cp-bar-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.cp-bar { height: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); overflow: hidden; }
+.cp-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent-2), var(--accent)); min-width: 4px; transition: width .6s ease; }
+.cp-next { font-size: 0.78rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cp-total { flex: 0 0 auto; font-size: 1rem; color: var(--text-dim); white-space: nowrap; }
+.cp-total strong { font-size: 1.4rem; color: var(--accent); }
+
+/* Carte : ratio 2:1 TOUJOURS conservé (plus d'écrasement sur mobile) */
+.world-map {
+  position: relative; flex: 0 0 auto; margin: 0 auto;
+  width: min(100%, calc(44vh * 2), 1180px); aspect-ratio: 2 / 1;
+  border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow);
+}
 .world-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .sites { position: absolute; inset: 0; }
 .site {
   position: absolute; transform: translate(-50%, -50%);
-  background: none; border: none; cursor: pointer; color: var(--text);
+  background: none; border: none; cursor: pointer; color: var(--text); padding: 0;
 }
 .site-dot {
-  display: block; width: 22px; height: 22px; border-radius: 50%; margin: 0 auto;
-  background: var(--accent); box-shadow: 0 0 0 6px rgba(255,212,59,0.2), 0 0 20px rgba(255,212,59,0.6);
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 50%; margin: 0 auto;
+  font-size: 0.8rem; font-weight: 800; color: #2a1c00;
+  background: var(--accent); box-shadow: 0 0 0 5px rgba(255,212,59,0.22), 0 0 18px rgba(255,212,59,0.6);
   transition: transform .2s;
 }
-.site.locked .site-dot { background: #5a7089; box-shadow: 0 0 0 5px rgba(90,112,137,0.2); }
-.site.won .site-dot { background: var(--accent-2); box-shadow: 0 0 0 6px rgba(33,212,168,0.25), 0 0 20px rgba(33,212,168,0.7); }
-.site:hover .site-dot { transform: scale(1.2); }
-.site-card {
-  position: absolute; left: 50%; top: 130%; transform: translateX(-50%);
-  background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
-  padding: 10px 14px; width: 190px; text-align: left;
-  display: flex; flex-direction: column; gap: 2px;
-  box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
-}
-.site:hover .site-card, .site:focus .site-card { opacity: 1; transform: translateX(-50%) translateY(-4px); }
-.site-card strong { font-size: 1.05rem; }
-.site-card em { color: var(--text-dim); font-style: normal; font-size: 0.85rem; }
-.site-status { font-size: 0.8rem; color: var(--accent); margin-top: 4px; }
-.site-best { font-size: 0.75rem; color: var(--text-dim); }
+.site.locked .site-dot { background: #5a7089; color: #fff; font-size: 0.62rem; box-shadow: 0 0 0 4px rgba(90,112,137,0.22); }
+.site.won .site-dot { background: var(--accent-2); color: #002a20; box-shadow: 0 0 0 5px rgba(33,212,168,0.25), 0 0 18px rgba(33,212,168,0.7); }
+.site:hover .site-dot, .site.hl .site-dot { transform: scale(1.3); }
+.site.hl { z-index: 3; }
 .site-name-tag {
   position: absolute; left: 50%; top: -22px; transform: translateX(-50%);
-  font-size: 0.72rem; font-weight: 700; color: var(--text);
-  background: rgba(6,26,44,0.7); padding: 1px 7px; border-radius: 8px; white-space: nowrap;
+  font-size: 0.7rem; font-weight: 700; color: var(--text);
+  background: rgba(6,26,44,0.78); padding: 1px 7px; border-radius: 8px; white-space: nowrap;
   border: 1px solid var(--border); pointer-events: none;
+  opacity: 0; transition: opacity .15s; z-index: 4;
 }
+.site:hover .site-name-tag, .site.hl .site-name-tag { opacity: 1; }
 .site.locked .site-name-tag { color: var(--text-dim); }
-.site-count {
-  position: absolute; top: -8px; right: -8px;
-  background: var(--accent); color: #2a1c00; font-size: 0.68rem; font-weight: 800;
-  min-width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-  border: 1px solid rgba(0,0,0,0.3); padding: 0 3px;
+.site.shake { animation: shake .4s; }
+@keyframes shake { 0%,100%{transform:translate(-50%,-50%)} 25%{transform:translate(-58%,-50%)} 75%{transform:translate(-42%,-50%)} }
+
+/* Cartes de course */
+.course-list {
+  flex: 0 0 auto; width: 100%; max-width: 1180px; margin: 0 auto;
+  display: grid; gap: 12px; grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.site-dot { position: relative; }
+.course-card {
+  font-family: var(--font); color: var(--text); text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 9px; padding: 12px 14px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+  transition: transform .15s ease, border-color .2s, box-shadow .2s;
+}
+.course-card:hover, .course-card.hl { transform: translateY(-3px); border-color: rgba(255,212,59,0.55); box-shadow: 0 10px 26px rgba(0,0,0,0.4); }
+.course-card.won { border-color: rgba(33,212,168,0.45); background: linear-gradient(180deg, rgba(33,212,168,0.10), var(--panel)); }
+.course-card.locked { opacity: 0.55; cursor: not-allowed; }
+.course-card.shake-x { animation: shakeX .4s; }
+@keyframes shakeX { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.cc-top { display: flex; align-items: center; gap: 10px; }
+.cc-num {
+  flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem;
+  background: var(--accent); color: #2a1c00;
+}
+.course-card.won .cc-num { background: var(--accent-2); color: #002a20; }
+.course-card.locked .cc-num { background: #5a7089; color: #fff; font-size: 0.8rem; }
+.cc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cc-main strong { font-size: 1.02rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-main em { font-style: normal; font-size: 0.76rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-status { flex: 0 0 auto; font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; background: rgba(255,212,59,0.16); color: var(--accent); white-space: nowrap; }
+.course-card.won .cc-status { background: rgba(33,212,168,0.18); color: var(--accent-2); }
+.course-card.locked .cc-status { background: rgba(255,255,255,0.08); color: var(--text-dim); }
+.cc-best { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 0.8rem; color: var(--text-dim); padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,0.04); }
+.cc-best b { font-size: 1.1rem; color: var(--text); font-variant-numeric: tabular-nums; }
+.trophy-shelf { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.ts-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 0 4px; border-radius: 8px; background: rgba(255,255,255,0.03); }
+.ts-ico { font-size: 1.15rem; line-height: 1; }
+.ts-lbl { font-size: 0.56rem; color: var(--text-dim); white-space: nowrap; }
+.ts-cell.todo .ts-ico { filter: grayscale(1) brightness(0.55); opacity: 0.45; }
+.ts-cell.got { background: rgba(255,212,59,0.14); box-shadow: inset 0 0 0 1px rgba(255,212,59,0.35); }
+.ts-cell.got .ts-lbl { color: var(--accent); }
+
+@media (max-width: 1100px) { .course-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  .course-list { grid-template-columns: 1fr; }
+  .site-name-tag { display: none; }
+  .site-dot { width: 22px; height: 22px; font-size: 0.7rem; box-shadow: 0 0 0 3px rgba(255,212,59,0.22), 0 0 10px rgba(255,212,59,0.5); }
+  .campaign-progress { flex-wrap: wrap; padding: 10px 12px; }
+  .cp-bar-wrap { order: 3; flex: 1 1 100%; }
+  .cp-total { margin-left: auto; }
+  .cp-next { white-space: normal; }
+  .screen-head { padding: 10px 12px; }
+  .screen-head h2 { font-size: 1.15rem; }
+  .screen-head > div { width: 0; }
+}
 /* Trophées (rangée de 5) */
 .trophies { display: inline-flex; gap: 4px; margin: 2px 0; }
 .trophy { font-size: 1rem; line-height: 1; transition: transform .2s; }
@@ -158,8 +227,6 @@ body {
 .diff-scale span { flex: 1; text-align: center; }
 .diff-scale span:first-child { text-align: left; }
 .diff-scale span:last-child { text-align: right; }
-.site.shake { animation: shake .4s; }
-@keyframes shake { 0%,100%{transform:translate(-50%,-50%)} 25%{transform:translate(-54%,-50%)} 75%{transform:translate(-46%,-50%)} }
 
 /* ---------------- PRÉ-COURSE ---------------- */
 .precourse-body { flex: 1; display: flex; gap: 24px; padding: 26px; overflow: auto; }

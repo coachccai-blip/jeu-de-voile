@@ -21,7 +21,7 @@ export const STRINGS = {
     installAlready: '✓ Jeu installé',
 
     // Carte du monde
-    mapTitle: 'Carte du monde',
+    mapTitle: 'Campagne',
     mapBack: '← Menu',
     mapLocked: 'Verrouillé',
     mapAvailable: 'Disponible',
@@ -30,6 +30,10 @@ export const STRINGS = {
     mapNoTime: '—',
     mapUnlockHint: 'Gagnez la course précédente pour débloquer.',
     mapTrophies: 'Trophées',
+    campRank: 'Rang',
+    campNext: 'Prochain rang',
+    campRemaining: 'encore {n} trophée(s)',
+    campMax: 'Rang maximal atteint — tous les trophées sont débloqués !',
 
     // Pré-course
     preRaceStart: 'Prendre le départ',

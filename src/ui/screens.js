@@ -145,9 +145,33 @@ function startMenuBg(canvas) {
 }
 
 // ─────────────────────────── CARTE DU MONDE ───────────────────────────
+// Rangs débloqués selon le nombre total de trophées (8 courses × 5 difficultés = 40).
+const RANKS = [
+  { min: 0,  name: 'Moussaillon', icon: '⚓' },
+  { min: 5,  name: 'Matelot',     icon: '🧭' },
+  { min: 12, name: 'Skipper',     icon: '⛵' },
+  { min: 20, name: 'Capitaine',   icon: '🎖️' },
+  { min: 30, name: 'Commodore',   icon: '🌟' },
+  { min: 40, name: 'Amiral',      icon: '👑' },
+];
+const LEVEL_ABBR = ['T. facile', 'Facile', 'Moyen', 'Difficile', 'Extrême'];
+
+/** Étagère de 5 trophées à débloquer (un par difficulté), avec libellé. */
+function trophyShelfHTML(trophies) {
+  return `<span class="trophy-shelf">` + BALANCE.difficulty.levels.map((lv, i) => {
+    const got = trophies && trophies[i];
+    return `<span class="ts-cell ${got ? 'got' : 'todo'}" title="${lv.label}"><span class="ts-ico">🏆</span><span class="ts-lbl">${LEVEL_ABBR[i]}</span></span>`;
+  }).join('') + `</span>`;
+}
+
 export function renderMap(ctx) {
   clear(ctx.root);
   audio.playMusic('menu');
+  const progs = COURSES.map(c => getCourseProgress(c.id));
+  const total = progs.reduce((n, p) => n + p.trophies.filter(Boolean).length, 0);
+  const max = COURSES.length * BALANCE.difficulty.levels.length;
+  const rankIdx = RANKS.reduce((k, r, i) => (total >= r.min ? i : k), 0);
+  const rank = RANKS[rankIdx], next = RANKS[rankIdx + 1];
   const el = document.createElement('div');
   el.className = 'screen map-screen';
   el.innerHTML = `
@@ -155,43 +179,76 @@ export function renderMap(ctx) {
       <button class="btn btn-ghost" data-back>${t('mapBack')}</button>
       <h2>${t('mapTitle')}</h2><div></div>
     </header>
-    <div class="world-map">
-      <canvas class="world-canvas"></canvas>
-      <div class="sites"></div>
+    <div class="campaign-body">
+      <div class="campaign-progress">
+        <div class="cp-rank"><span class="cp-ico">${rank.icon}</span>
+          <span><span class="cp-lbl">${t('campRank')}</span><strong>${rank.name}</strong></span></div>
+        <div class="cp-bar-wrap">
+          <div class="cp-bar"><div class="cp-fill" style="width:${(total / max) * 100}%"></div></div>
+          <span class="cp-next">${next ? `${t('campNext')} : ${next.icon} ${next.name} — ${t('campRemaining').replace('{n}', next.min - total)}` : t('campMax')}</span>
+        </div>
+        <div class="cp-total">🏆 <strong>${total}</strong>/${max}</div>
+      </div>
+      <div class="world-map">
+        <canvas class="world-canvas"></canvas>
+        <div class="sites"></div>
+      </div>
+      <div class="course-list"></div>
     </div>
   `;
   ctx.root.appendChild(el);
   startWorldCanvas(el.querySelector('.world-canvas'));
   const sites = el.querySelector('.sites');
+  const list = el.querySelector('.course-list');
   const positions = computeSitePositions();
   COURSES.forEach((c, idx) => {
     const unlocked = isUnlocked(idx);
-    const prog = getCourseProgress(c.id);
+    const prog = progs[idx];
     const pos = positions[idx];
-    const node = document.createElement('button');
-    node.className = `site ${unlocked ? 'unlocked' : 'locked'} ${prog.won ? 'won' : ''}`;
-    node.style.left = (pos.x * 100) + '%';
-    node.style.top = (pos.y * 100) + '%';
-    const tcount = prog.trophies.filter(Boolean).length;
     const chapter = getChapter(c.chapter);
     const product = chapter ? chapter.short : c.name;
+    const state = prog.won ? 'won' : unlocked ? 'unlocked' : 'locked';
+    const open = () => {
+      if (!unlocked) { audio.sfx('wrong'); return false; }
+      ctx.go('precourse', { courseId: c.id });
+      return true;
+    };
+
+    // Pastille sur la carte (numéro de l'étape)
+    const node = document.createElement('button');
+    node.className = `site ${state}`;
+    node.style.left = (pos.x * 100) + '%';
+    node.style.top = (pos.y * 100) + '%';
+    node.setAttribute('aria-label', `${idx + 1} ${product}`);
     node.innerHTML = `
-      <span class="site-dot">${tcount > 0 ? `<span class="site-count">${tcount}</span>` : ''}</span>
-      <span class="site-name-tag"><b class="site-num">${idx + 1}</b> ${product}</span>
-      <span class="site-card">
-        <strong>${chapter ? chapter.title : c.name}</strong>
-        <em>${c.name} · ${c.country}</em>
-        <span class="site-status">${prog.won ? '🏆 ' + t('mapWon') : unlocked ? t('mapAvailable') : '🔒 ' + t('mapLocked')}</span>
-        <span class="site-trophies-label">${t('mapTrophies')} ${prog.trophies.filter(Boolean).length}/5</span>
-        ${trophiesHTML(prog.trophies)}
-        <span class="site-best">${t('mapBestTime')} : ${fmtTime(prog.bestTimes[0])}</span>
-      </span>`;
+      <span class="site-dot">${unlocked ? idx + 1 : '🔒'}</span>
+      <span class="site-name-tag">${product}</span>`;
     btnSfx(node);
     node.addEventListener('click', () => {
-      if (!unlocked) { audio.sfx('wrong'); node.classList.add('shake'); setTimeout(() => node.classList.remove('shake'), 400); return; }
-      ctx.go('precourse', { courseId: c.id });
+      if (!open()) { node.classList.add('shake'); setTimeout(() => node.classList.remove('shake'), 400); }
     });
     sites.appendChild(node);
+
+    // Carte de course : produit, meilleur temps, trophées à débloquer
+    const card = document.createElement('button');
+    card.className = `course-card ${state}`;
+    card.innerHTML = `
+      <span class="cc-top">
+        <span class="cc-num">${unlocked ? idx + 1 : '🔒'}</span>
+        <span class="cc-main"><strong>${product}</strong><em>${c.name} · ${c.country}</em></span>
+        <span class="cc-status">${prog.won ? '✓ ' + t('mapWon') : unlocked ? t('mapAvailable') : t('mapLocked')}</span>
+      </span>
+      <span class="cc-best"><span>⏱ ${t('mapBestTime')}</span><b>${fmtTime(prog.bestTimes[0])}</b></span>
+      ${trophyShelfHTML(prog.trophies)}`;
+    btnSfx(card);
+    card.addEventListener('click', () => {
+      if (!open()) { card.classList.add('shake-x'); setTimeout(() => card.classList.remove('shake-x'), 400); }
+    });
+    card.addEventListener('mouseenter', () => node.classList.add('hl'));
+    card.addEventListener('mouseleave', () => node.classList.remove('hl'));
+    node.addEventListener('mouseenter', () => card.classList.add('hl'));
+    node.addEventListener('mouseleave', () => card.classList.remove('hl'));
+    list.appendChild(card);
   });
   el.querySelector('[data-back]').addEventListener('click', () => { audio.sfx('uiClick'); ctx.go('menu'); });
 }
@@ -202,9 +259,11 @@ export function renderMap(ctx) {
  * Saint-Tropez, distantes de ~60 km, donc quasi au même pixel à l'échelle mondiale).
  */
 function computeSitePositions() {
-  const pos = COURSES.map(c => geoToMap(c.geo));
-  const minSep = 0.045; // écart minimal (fraction de la largeur)
-  for (let iter = 0; iter < 40; iter++) {
+  // On travaille en unités de LARGEUR (la carte est en 2:1, donc Y compte moitié).
+  const pos = COURSES.map(c => { const p = geoToMap(c.geo); return { x: p.x, y: p.y * 0.5 }; });
+  const minSep = 0.075; // écart minimal entre pastilles (fraction de la largeur)
+  const clampAll = () => { for (const p of pos) { p.x = Math.max(0.04, Math.min(0.96, p.x)); p.y = Math.max(0.04, Math.min(0.46, p.y)); } };
+  for (let iter = 0; iter < 80; iter++) {
     let moved = false;
     for (let i = 0; i < pos.length; i++) {
       for (let j = i + 1; j < pos.length; j++) {
@@ -212,7 +271,7 @@ function computeSitePositions() {
         let d = Math.hypot(dx, dy);
         if (d < minSep) {
           if (d < 1e-6) { dx = 0.01; dy = 0; d = 0.01; }
-          const push = (minSep - d) / 2;
+          const push = (minSep - d) / 2 + 0.0005;
           const ux = dx / d, uy = dy / d;
           pos[i].x -= ux * push; pos[i].y -= uy * push;
           pos[j].x += ux * push; pos[j].y += uy * push;
@@ -220,11 +279,10 @@ function computeSitePositions() {
         }
       }
     }
+    clampAll();
     if (!moved) break;
   }
-  // garde les pastilles dans le cadre
-  for (const p of pos) { p.x = Math.max(0.03, Math.min(0.97, p.x)); p.y = Math.max(0.06, Math.min(0.94, p.y)); }
-  return pos;
+  return pos.map(p => ({ x: p.x, y: p.y * 2 }));
 }
 
 function startWorldCanvas(canvas) {
@@ -337,6 +395,7 @@ export function renderPreCourse(ctx, { courseId }) {
         </div>` : ''}
         <div class="info-row"><span>${t('preRaceBuoys')}</span><strong>${course.marks.length}</strong></div>
         <div class="info-row"><span>${t('preRaceWind')}</span><strong>${Math.round(course.wind.strength * 20)} nds</strong></div>
+        <div class="info-row"><span>⏱ ${t('mapBestTime')}</span><strong>${fmtTime(prog.bestTimes[0])}</strong></div>
         <div class="info-row rivals"><span>${t('preRaceRivals')}</span>
           <span class="rival-dots">${pickOpponents(4).map(tm => `<i style="background:${tm.color}" title="${tm.name}"></i>`).join('')}<em class="rival-note">4 au hasard</em></span>
         </div>
